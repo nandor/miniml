@@ -12,6 +12,7 @@ ADD_LIBRARY(miniml
   miniml/BytecodeFile.cpp
   miniml/Context.cpp
   miniml/Heap.cpp
+  miniml/Interpreter.cpp
   miniml/Stream.cpp
   miniml/Value.cpp
 )
