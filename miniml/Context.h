@@ -4,12 +4,21 @@
 
 #pragma once
 
+#include "miniml/Value.h"
+
+
+
 namespace miniml {
 class Heap;
 
+/// Context providing access to the environment.
 class Context {
  public:
 
+  Value allocInt64(int64_t i);
+  Value allocDouble(double v);
+  Value allocString(const char *str, size_t length);
+  Value allocBlock(size_t n, uint8_t tag);
 
  private:
   /// Memory Manager.

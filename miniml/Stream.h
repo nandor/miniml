@@ -36,8 +36,18 @@ class StreamReader {
   int32_t getInt32be() { return __builtin_bswap32(getInt32le()); }
   int64_t getInt64be() { return __builtin_bswap64(getInt64le()); }
 
+  // Reads floating-point values.
+  float getFloat() { return get<float>(); }
+  double getDouble() { return get<double>(); }
+
   /// Reads a null-terminated string.
   std::string getString();
+
+  /// Reads a string of fixed length.
+  const char *getString(size_t length);
+
+  /// Reads the stream length, if possible.
+  virtual size_t length() const { return 0; }
 
  protected:
   /// Reads a typed value.
@@ -55,11 +65,11 @@ class StreamWriter {
  public:
   virtual ~StreamWriter();
 
-  // Reads bytes.
+  // Writes bytes.
   void putUInt8(uint8_t v) { put<uint8_t>(v); }
   void putInt8(int8_t v) { put<int8_t>(v); }
 
-  // Reads words in little-endian order.
+  // Writes words in little-endian order.
   void putUInt16le(uint16_t v) { put<uint16_t>(v); }
   void putUInt32le(uint32_t v) { put<uint32_t>(v); }
   void putUInt64le(uint64_t v) { put<uint64_t>(v); }
@@ -67,7 +77,7 @@ class StreamWriter {
   void putInt32le(int32_t v) { put<int32_t>(v); }
   void putInt64le(int64_t v) { put<int64_t>(v); }
 
-  // Reads words in big-endian order.
+  // Writes words in big-endian order.
   void putUInt16be(uint16_t v) { put<uint16_t>(__builtin_bswap16(v)); }
   void putUInt32be(uint32_t v) { put<uint32_t>(__builtin_bswap32(v)); }
   void putUInt64be(uint64_t v) { put<uint64_t>(__builtin_bswap64(v)); }
@@ -75,11 +85,15 @@ class StreamWriter {
   void putInt32be(int32_t v) { put<int32_t>(__builtin_bswap32(v)); }
   void putInt64be(int64_t v) { put<int64_t>(__builtin_bswap64(v)); }
 
-  /// Reads a null-terminated string.
+  /// Writes floating-point values.
+  void putFloat(float v) { put<float>(v); }
+  void putDouble(double v) { put<double>(v); }
+
+  /// Writes a null-terminated string.
   void putString(const std::string &v);
 
  protected:
-  /// Reads a typed value.
+  /// Writes a typed value.
   template<typename T>
   void put(T value) {
     put(&value, sizeof(T));
@@ -101,6 +115,9 @@ class MemoryStreamReader : public StreamReader {
 
   /// Frees the memory reader.
   ~MemoryStreamReader();
+
+  /// Returns the buffer length.
+  size_t length() const override { return size_; }
 
  private:
   /// Reads a number of bytes from the buffer.

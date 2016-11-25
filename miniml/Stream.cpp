@@ -21,6 +21,9 @@ std::string StreamReader::getString() {
   return buffer;
 }
 
+const char *StreamReader::getString(size_t length) {
+  return reinterpret_cast<const char*>(get(length));
+}
 
 
 // -----------------------------------------------------------------------------
