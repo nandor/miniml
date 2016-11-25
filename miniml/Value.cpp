@@ -151,7 +151,7 @@ Value miniml::getValue(Context &ctx, StreamReader &stream) {
 // -----------------------------------------------------------------------------
 // putValue
 // -----------------------------------------------------------------------------
-void miniml::putValue(Context &ctx, StreamWriter &stream) {
+void miniml::putValue(Context &ctx, Value value, StreamWriter &stream) {
 }
 
 

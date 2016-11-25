@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <memory>
-#include <iomanip>
 
 #include "miniml/Context.h"
 #include "miniml/Value.h"

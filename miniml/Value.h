@@ -15,8 +15,11 @@ namespace miniml {
 class Context;
 
 /// Well-known tags.
-static const uint8_t kDoubleTag = 0xFC;
-static const uint8_t kDoubleArrayTag = 0xFD;
+static const uint8_t kClosureTag     = 247;
+static const uint8_t kInfixTag       = 249;
+static const uint8_t kStringTag      = 252;
+static const uint8_t kDoubleTag      = 253;
+static const uint8_t kDoubleArrayTag = 254;
 
 
 /// Wrapper around a block/integer.
@@ -36,6 +39,9 @@ class Value {
   }
   Value(size_t size, uint8_t tag)
     : type_(3), size_(size), tag_(tag), values_(new Value[size]) {
+  }
+  Value(size_t size, uint8_t tag, bool color)
+    : type_(4), size_(size), tag_(tag) {
   }
 
   Value(const Value &value) {
@@ -119,7 +125,7 @@ class Value {
 Value getValue(Context &ctx, StreamReader &stream);
 
 /// Serializes a value, writing it to a stream.
-void putValue(Context &ctx, StreamWriter &stream);
+void putValue(Context &ctx, Value value, StreamWriter &stream);
 
 /// Prints a value's text representation.
 void printValue(Context &ctx, Value value, std::ostream &os);
