@@ -43,9 +43,11 @@ class Value {
   }
 
   ~Value() {
+    clear();
   }
 
   Value &operator=(const Value &value) {
+    clear();
     copy(value);
     return *this;
   }
@@ -66,6 +68,15 @@ class Value {
       for (size_t i = 0; i < size_; ++i) {
         values_[i] = value.values_[i];
       }
+    }
+  }
+
+  void clear() {
+    if (type_ == 2) {
+      free(str_);
+    }
+    if (type_ == 3) {
+      delete[] values_;
     }
   }
 

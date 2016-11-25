@@ -159,7 +159,7 @@ void miniml::putValue(Context &ctx, StreamWriter &stream) {
 // -----------------------------------------------------------------------------
 // printValue
 // -----------------------------------------------------------------------------
-void printValueImpl(Value value, std::ostream &os, size_t indent) {
+static void printValueImpl(Value value, std::ostream &os, size_t indent) {
   for (size_t i = 0; i < indent; ++i) {
     os << "  ";
   }

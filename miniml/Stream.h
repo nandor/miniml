@@ -49,6 +49,9 @@ class StreamReader {
   /// Reads the stream length, if possible.
   virtual size_t length() const { return 0; }
 
+  /// Checks if eof was reached.
+  virtual bool eof() const { return false; }
+
  protected:
   /// Reads a typed value.
   template<typename T>
@@ -118,6 +121,9 @@ class MemoryStreamReader : public StreamReader {
 
   /// Returns the buffer length.
   size_t length() const override { return size_; }
+
+  /// Checks if eof was reached.
+  bool eof() const override { return cursor_ >= size_; }
 
  private:
   /// Reads a number of bytes from the buffer.

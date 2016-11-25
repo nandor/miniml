@@ -11,13 +11,27 @@
 #include "miniml/BytecodeFile.h"
 using namespace miniml;
 
-void dumpData(Section *section) {
+
+
+// -----------------------------------------------------------------------------
+static void dumpData(Section *section) {
   Context ctx;
   MemoryStreamReader stream(section->getData(), section->getSize());
   printValue(ctx, getValue(ctx, stream), std::cout);
 }
 
 
+
+// -----------------------------------------------------------------------------
+static void dumpStrings(Section *section) {
+  MemoryStreamReader stream(section->getData(), section->getSize());
+  while (!stream.eof()) {
+    std::cout << "  " << stream.getString() << std::endl;
+  }
+}
+
+
+// -----------------------------------------------------------------------------
 int main(int argc, char **argv) {
   if (argc < 2) {
     std::cerr << "Usage: dump [path]" << std::endl;
@@ -33,14 +47,17 @@ int main(int argc, char **argv) {
         std::cout << "Section " << section->getName() << std::endl;
 
         switch (section->getType()) {
-        //case CODE: dumpCODE(static_cast<SectionCODE*>(section)); break;
-        case DATA: dumpData(section); break;
-        //case PRIM: dumpPRIM(static_cast<SectionPRIM*>(section)); break;
-        //case DLLS: dumpDLLS(static_cast<SectionDLLS*>(section)); break;
-        //case DLPT: dumpDLPT(static_cast<SectionDLPT*>(section)); break;
-        //case DBUG: dumpDBUG(static_cast<SectionDBUG*>(section)); break;
-        case CRCS: dumpData(section); break;
-        //case SYMB: dumpSYMB(static_cast<SectionSYMB*>(section)); break;
+        case CODE:
+          // TODO: code.
+          break;
+        case PRIM: case DLLS: case DLPT:
+          dumpStrings(section);
+          break;
+        case DATA: case CRCS:
+          dumpData(section);
+          break;
+        case DBUG: case SYMB:
+          break;
         }
       }
     }
