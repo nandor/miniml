@@ -34,11 +34,19 @@ void Context::run(BytecodeFile &file) {
   // Decode the global data.
   auto dataSection = file.getSection(DATA);
   MemoryStreamReader codeStream(dataSection->getData(), dataSection->getSize());
+  Value global = getValue(*this, codeStream);
 
   // Decode the code.
   auto codeSection = file.getSection(CODE);
   auto code = reinterpret_cast<const uint32_t *>(codeSection->getData());
-  Value global = getValue(*this, codeStream);
+
+  // Decode the names of linked methods.
+  std::vector<std::string> primNames;
+  auto primSection = file.getSection(PRIM);
+  MemoryStreamReader primStream(primSection->getData(), primSection->getSize());
+  while (!primStream.eof()) {
+    primNames.push_back(primStream.getString());
+  }
 
   Interpreter(*this, code, global).run();
 }

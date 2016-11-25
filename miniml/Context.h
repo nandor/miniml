@@ -30,8 +30,6 @@ class Context {
  private:
   /// Memory Manager.
   Heap *heap;
-  /// Primitive names.
-  std::vector<void *> prim_;
 };
 
 } // namespace miniml

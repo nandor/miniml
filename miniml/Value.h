@@ -21,6 +21,8 @@ static const uint8_t kStringTag      = 252;
 static const uint8_t kDoubleTag      = 253;
 static const uint8_t kDoubleArrayTag = 254;
 
+typedef uint64_t value;
+
 
 /// Wrapper around a block/integer.
 class Value {
