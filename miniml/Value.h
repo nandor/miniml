@@ -16,22 +16,61 @@ namespace miniml {
 class Context;
 class Heap;
 
+
 /// Well-known tags.
 static const uint8_t kClosureTag     = 247;
 static const uint8_t kInfixTag       = 249;
 static const uint8_t kStringTag      = 252;
 static const uint8_t kDoubleTag      = 253;
 static const uint8_t kDoubleArrayTag = 254;
+static const uint8_t kCustomTag      = 255;
+
 
 /// All values are encoded in 64 bits.
 typedef uint64_t value;
 
+
+/// Creates a value from an int64.
+inline value val_int64(int64_t val) {
+  return (val << 1ll) + 1ll;
+}
+/// Returns the block header.
+inline uint64_t val_header(value val) {
+  assert((val & 1) == 0 && "Value is not a block.");
+  return *(reinterpret_cast<const uint64_t *>(val));
+}
+/// Return the block tag.
+inline uint8_t val_tag(value val) {
+  return val_header(val) & 0xFF;
+}
+/// Returns the size of the block (in words).
+inline uint64_t val_size(value val) {
+  return val_header(val) >> 10;
+}
+/// Returns a pointer to the first field.
+inline value *val_ptr(value val) {
+  assert((val & 1) == 0 && "Value is not a block.");
+  return reinterpret_cast<value *>(val) + 1;
+}
+/// Extracts the int value.
+inline int64_t val_to_int64(value val) {
+  assert((val & 1) == 1 && "Value is not an integer.");
+  return static_cast<int64_t>(val) >> 1ll;
+}
+/// Returns a pointer to a field.
+inline value &val_field(value val, size_t n) {
+  assert((val_size(val) >= n) && "Index out of bounds");
+  return *(val_ptr(val) + n);
+}
+
+
+
 /// Wrapper around a block/integer.
-class Value {
+class Value final {
  public:
   /// Default value: integer 0.
   Value()
-    : value_(1ull)
+    : value_(val_int64(0ll))
   {
   }
 
@@ -57,6 +96,11 @@ class Value {
     return *this;
   }
 
+  /// Fetches the underlying value.
+  operator value () {
+    return value_;
+  }
+
   /// Checks if the value is of a specific type.
   inline bool isInt64() const {
     return value_ & 1;
@@ -73,31 +117,28 @@ class Value {
 
   /// Returns the header of a block.
   inline uint64_t header() const {
-    assert((value_ & 1) == 0 && "Value is an integer.");
-    return *(reinterpret_cast<const uint64_t *>(value_));
+    return val_header(value_);
   }
-
   /// Returns the tag, if the value is an integer.
   inline uint8_t tag() const {
-    assert((value_ & 1) == 0 && "Value is not a block.");
-    return header() & 0xFF;
+    return val_tag(value_);
   }
-
   /// Returns the size of the block (number of words).
   inline size_t size() const {
-    return header() >> 10;
+    return val_size(value_);
   }
 
   /// Returns a pointer to the first field.
-  inline value *ptr() const {
-    assert((value_ & 1) == 0 && "Value is not a block.");
-    return reinterpret_cast<value *>(value_) + 1;
+  inline const value *ptr() const {
+    return val_ptr(value_);
+  }
+  inline value *ptr() {
+    return val_ptr(value_);
   }
 
   /// Decodes the value.
   inline int64_t getInt64() const {
-    assert((value_ & 1) == 1 && "Value is not an integer.");
-    return static_cast<int64_t>(value_) >> 1ll;
+    return val_int64(value_);
   }
   inline double getDouble() const {
     assert(tag() == kDoubleTag && "Value is not a double.");
@@ -118,14 +159,12 @@ class Value {
 
   /// Sets a field of the block.
   inline void setField(size_t n, Value value) {
-    assert((size() >= n) && "Index out of bounds");
-    *(ptr() + n) = value.value_;
+    val_field(value_, n) = value.value_;
   }
 
   /// Reads a field of the block.
   inline Value getField(size_t n) {
-    assert((size() >= n) && "Index out of bounds");
-    return *(ptr() + n);
+    return val_field(value_, n);
   }
 
  private:
@@ -139,6 +178,19 @@ class Value {
 static Value kUnit(1ull);
 static Value kTrue(3ull);
 static value kFalse(1ull);
+
+
+
+/// Table of custom operations.
+struct CustomOperations {
+  const char *identifier;
+  void     (*finalize)    (Context &ctx, value);
+  int      (*compare)     (Context &ctx, value, value);
+  uint64_t (*hash)        (Context &ctx, value, value);
+  void     (*serialize)   (Context &ctx, value, StreamWriter &stream);
+  value    (*deserialize) (Context &ctx, StreamReader &stream);
+  int      (*compare_ext) (Context &ctx, value, value);
+};
 
 
 

@@ -28,6 +28,7 @@ TARGET_LINK_LIBRARIES(mldump
 # interp
 ADD_EXECUTABLE(mlinterp
   interp.cpp
+  miniml/Runtime.cpp
 )
 TARGET_LINK_LIBRARIES(mlinterp
   miniml

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 
 #include "miniml/Value.h"
@@ -24,10 +25,14 @@ class Context {
   virtual ~Context();
 
   // Allocates values on the heap.
-  Value allocInt64(int64_t i);
-  Value allocDouble(double v);
-  Value allocString(const char *str, size_t length);
-  Value allocBlock(size_t n, uint8_t tag);
+  value allocInt64(int64_t i);
+  value allocDouble(double v);
+  value allocString(const char *str, size_t length);
+  value allocBlock(size_t n, uint8_t tag);
+
+  // Custom value operations.
+  void registerOperations(CustomOperations *value);
+  CustomOperations *getOperations(const std::string &name);
 
   // Executes a bytecode file.
   void run(BytecodeFile &file);
@@ -36,7 +41,9 @@ class Context {
   /// Interpreter is a friend.
   friend class Heap;
   /// Memory Manager.
-  Heap heap;
+  Heap heap_;
+  /// List of custom values.
+  std::unordered_map<std::string, CustomOperations *> custom_;
 };
 
 } // namespace miniml

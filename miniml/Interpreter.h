@@ -15,7 +15,11 @@ class Context;
 class Interpreter {
  public:
   // Creates a new interpreter.
-  Interpreter(Context &ctx, const uint32_t *code, Value global);
+  Interpreter(
+      Context &ctx,
+      const uint32_t *code,
+      Value global,
+      std::vector<void*> prim);
 
   // Frees the interpreter.
   ~Interpreter();
@@ -63,6 +67,8 @@ class Interpreter {
  private:
   /// Reference to the context.
   Context &ctx;
+  /// Builtin functions.
+  std::vector<void *> prim;
   /// Code being executed.
   const uint32_t *code;
   /// Stack pointer.

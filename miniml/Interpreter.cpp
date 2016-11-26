@@ -9,8 +9,15 @@ using namespace miniml;
 
 
 
-Interpreter::Interpreter(Context &ctx, const uint32_t *code, Value global)
-  : ctx(ctx), code(code), global(global)
+Interpreter::Interpreter(
+    Context &ctx,
+    const uint32_t *code,
+    Value global,
+    std::vector<void*> prim)
+  : ctx(ctx)
+  , code(code)
+  , global(global)
+  , prim(prim)
 {
   for (size_t i = 0; i < 256; ++i) {
     atom[i] = ctx.allocBlock(0, i);
@@ -104,10 +111,10 @@ void Interpreter::run() {
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
-    std::cerr << "PC: " << PC << std::endl;
-    std::cerr << "Stack: " << stack.size() << std::endl;
-    std::cerr << "Acc: "; printValue(ctx, A, std::cout);
-    std::cerr << "-----" << std::endl;
+    std::cout << "PC: " << PC << std::endl;
+    std::cout << "Stack: " << stack.size() << std::endl;
+    std::cout << "Acc: "; printValue(ctx, A, std::cout);
+    std::cout << "-----" << std::endl;
   }
 }
 
@@ -320,9 +327,47 @@ void Interpreter::runPUSHCONST(int32_t n) {
 void Interpreter::runCCALL(uint32_t n) {
   std::cout << "CCALL" << n << std::endl;
   uint32_t p = code[PC++];
+
+  Value result;
+
+  stack.push_back(env);
+
+  switch (n) {
+  case 0: {
+    auto *fn = ((value(*)(Context&, value))prim[p]);
+    result = fn(ctx, A);
+    break;
+  }
+  case 1: {
+    auto *fn = ((value(*)(Context&, value, value))prim[p]);
+    result = fn(ctx, A, stack[0]);
+    break;
+  }
+  case 2: {
+    auto *fn = ((value(*)(Context&, value, value, value))prim[p]);
+    result = fn(ctx, A, stack[0], stack[1]);
+    break;
+  }
+  case 3: {
+    auto *fn = ((value(*)(Context&, value, value, value, value))prim[p]);
+    result = fn(ctx, A, stack[0], stack[1], stack[2]);
+    break;
+  }
+  case 4: {
+    auto *fn = ((value(*)(Context&, value, value, value, value, value))prim[p]);
+    result = fn(ctx, A, stack[0], stack[1], stack[2], stack[3]);
+    break;
+  }
+  default:
+    throw std::runtime_error("CCall not implemented");
+  }
+
+  stack.pop_back();
   for (uint32_t i = 1; i < n; ++i) {
     stack.pop_back();
   }
+
+  stack.push_back(result);
 }
 
 void Interpreter::runLSRINT() {
