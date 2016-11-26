@@ -75,7 +75,7 @@ static Value getValueImpl(Context &ctx, StreamReader &stream) {
     if (tag != "_j") {
       throw std::runtime_error("Not implemented");
     }
-    return ctx.allocInt64(stream.getInt64be());
+    return ctx.allocInt64(stream.getInt64le());
   }
   case 0x13: {
     // Object with 64-bit header.

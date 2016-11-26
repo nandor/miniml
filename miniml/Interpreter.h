@@ -30,7 +30,7 @@ class Interpreter {
   void runPOP(uint32_t n);
   void runASSIGN();
   void runENVACC();
-  void runGETFIELD();
+  void runGETFIELD(uint32_t n);
   void runPUSH_RETADDR();
   void runAPPLY(uint32_t args);
   void runRESTART();
@@ -43,10 +43,8 @@ class Interpreter {
   void runGETGLOBALFIELD();
   void runPUSHGETGLOBALFIELD();
   void runSETGLOBAL(uint32_t n);
-  void runATOM0();
-  void runATOM();
-  void runPUSHATOM0();
-  void runPUSHATOM();
+  void runATOM(uint32_t n);
+  void runPUSHATOM(uint32_t n);
   void runMAKEBLOCK(uint32_t n);
   void runBRANCH(int32_t ofs);
   void runBRANCHIF(int32_t ofs);
@@ -55,8 +53,12 @@ class Interpreter {
   void runPUSHTRAP();
   void runPOPTRAP();
   void runCHECK_SIGNALS();
-  void runPUSHCONST0();
+  void runCONST(int32_t n);
+  void runPUSHCONST(int32_t n);
   void runCCALL(uint32_t n);
+  void runLSRINT();
+  void runOFFSETINT(int32_t ofs);
+  void runGTINT();
 
  private:
   /// Reference to the context.
@@ -77,6 +79,8 @@ class Interpreter {
   Value env;
   /// Global state.
   Value global;
+  /// Atom table.
+  Value atom[256];
 };
 
 } // namespace miniml

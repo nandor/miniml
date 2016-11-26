@@ -33,6 +33,8 @@ class Context {
   void run(BytecodeFile &file);
 
  private:
+  /// Interpreter is a friend.
+  friend class Heap;
   /// Memory Manager.
   Heap heap;
 };

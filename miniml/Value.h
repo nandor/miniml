@@ -97,7 +97,7 @@ class Value {
   /// Decodes the value.
   inline int64_t getInt64() const {
     assert((value_ & 1) == 1 && "Value is not an integer.");
-    return value_ >> 1;
+    return static_cast<int64_t>(value_) >> 1ll;
   }
   inline double getDouble() const {
     assert(tag() == kDoubleTag && "Value is not a double.");
@@ -132,6 +132,14 @@ class Value {
   /// Wrapped value.
   value value_;
 };
+
+
+
+/// Common constants.
+static Value kUnit(1ull);
+static Value kTrue(3ull);
+static value kFalse(1ull);
+
 
 
 /// Deserializes a value, reading it from a stream.
