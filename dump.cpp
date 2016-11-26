@@ -52,7 +52,8 @@ int main(int argc, char **argv) {
         case PRIM: case DLLS: case DLPT:
           dumpStrings(section);
           break;
-        case DATA: case CRCS:
+        //case DATA:
+        case CRCS:
           dumpData(section);
           break;
         case DBUG: case SYMB:

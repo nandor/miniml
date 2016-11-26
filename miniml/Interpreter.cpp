@@ -112,7 +112,6 @@ void Interpreter::runPUSH_RETADDR() {
 }
 
 void Interpreter::runAPPLY(uint32_t args) {
-  std::cerr << A.getSize() << std::endl;
   printValue(ctx, A, std::cout);
   extraArgs = args - 1;
   exit(0);

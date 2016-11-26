@@ -13,19 +13,6 @@ static const uint32_t kBlockMagic = 0x8495A6BE;
 
 
 // -----------------------------------------------------------------------------
-// Value
-// -----------------------------------------------------------------------------
-void Value::setField(size_t n, Value value) {
-  values_[n] = value;
-}
-
-Value Value::getField(size_t n) {
-  return values_[n];
-}
-
-
-
-// -----------------------------------------------------------------------------
 // getValue
 // -----------------------------------------------------------------------------
 static Value getValueImpl(Context &ctx, StreamReader &stream) {
@@ -174,7 +161,7 @@ static void printValueImpl(Value value, std::ostream &os, size_t indent) {
   if (value.isString()) {
     os << '"';
     const char *str = value.getString();
-    for (size_t i = 0; i < value.getSize(); ++i) {
+    for (size_t i = 0; i < value.strlen(); ++i) {
       if (isprint(str[i])) {
         os << str[i];
       } else {
@@ -182,10 +169,11 @@ static void printValueImpl(Value value, std::ostream &os, size_t indent) {
       }
     }
     os << '"';
+    return;
   }
   if (value.isBlock()) {
-    os << "(" << static_cast<int>(value.getTag()) << ") {\n";
-    for (size_t i = 0; i < value.getSize(); ++i) {
+    os << "(" << static_cast<int>(value.tag()) << ") {\n";
+    for (size_t i = 0; i < value.size(); ++i) {
       printValueImpl(value.getField(i), os, indent + 1);
       os << "\n";
     }

@@ -14,20 +14,28 @@ using namespace miniml;
 // -----------------------------------------------------------------------------
 // Context
 // -----------------------------------------------------------------------------
+Context::Context()
+  : heap()
+{
+}
+
+Context::~Context() {
+}
+
 Value Context::allocInt64(int64_t i) {
-  return Value(i);
+  return heap.allocInt64(i);
 }
 
 Value Context::allocDouble(double v) {
-  return Value(v);
+  return heap.allocDouble(v);
 }
 
 Value Context::allocString(const char *str, size_t length) {
-  return Value(str, length);
+  return heap.allocString(str, length);
 }
 
 Value Context::allocBlock(size_t n, uint8_t tag) {
-  return Value(n, tag);
+  return heap.allocBlock(n, tag);
 }
 
 void Context::run(BytecodeFile &file) {

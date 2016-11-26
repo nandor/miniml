@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "miniml/Value.h"
+#include "miniml/Heap.h"
 
 
 
@@ -17,6 +18,10 @@ class BytecodeFile;
 /// Context providing access to the environment.
 class Context {
  public:
+  // Creates a new context.
+  Context();
+  // Deletes the context.
+  virtual ~Context();
 
   // Allocates values on the heap.
   Value allocInt64(int64_t i);
@@ -29,7 +34,7 @@ class Context {
 
  private:
   /// Memory Manager.
-  Heap *heap;
+  Heap heap;
 };
 
 } // namespace miniml

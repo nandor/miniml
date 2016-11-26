@@ -8,14 +8,25 @@
 
 namespace miniml {
 
+// Heap managing memory.
 class Heap {
  public:
 
-  Value allocInt();
-  Value allocString(size_t length);
-  Value allocBlock(size_t length, uint8_t tag);
+  // Allocates values on the heap.
+  value allocInt64(int64_t i);
+  value allocDouble(double v);
+  value allocString(const char *str, size_t length);
+  value allocBlock(size_t n, uint8_t tag);
 
  private:
+  // Heap node.
+  struct Node {
+    Node *next;
+    void *mem;
+  };
+
+  // First heap node.
+  Node *first;
 };
 
 }
