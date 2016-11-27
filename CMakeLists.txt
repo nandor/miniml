@@ -23,6 +23,7 @@ ADD_LIBRARY(minirt SHARED
   minirt/IO.cpp
   minirt/Object.cpp
   minirt/String.cpp
+  minirt/System.cpp
 )
 TARGET_LINK_LIBRARIES(minirt
   miniml
