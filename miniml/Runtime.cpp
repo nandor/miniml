@@ -5,6 +5,32 @@
 #include "miniml/Context.h"
 using namespace miniml;
 
+
+
+// -----------------------------------------------------------------------------
+// channel
+// -----------------------------------------------------------------------------
+struct channel {
+  int fd;
+};
+
+void channel_finalize(Context &ctx, value val) {
+}
+
+
+CustomOperations channel_ops {
+  "_chan",
+  channel_finalize,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+};
+
+
+
+// -----------------------------------------------------------------------------
 extern "C" value caml_int64_float_of_bits(
     Context &ctx,
     value vi)
@@ -14,24 +40,35 @@ extern "C" value caml_int64_float_of_bits(
   return ctx.allocDouble(v.dbl_val);
 }
 
+
+
+// -----------------------------------------------------------------------------
 extern "C" value caml_ml_open_descriptor_in(
     Context &ctx,
     value fd)
 {
-  std::cerr << "caml_ml_open_descriptor_in" << std::endl;
-  exit(0);
-  return 1ull;
+  auto val_chan = ctx.allocCustom(&channel_ops, sizeof(fd));
+  auto chan = val_to_custom<channel>(val_chan);
+  chan->fd = val_to_int64(fd);
+  return val_chan;
 }
 
+
+
+// -----------------------------------------------------------------------------
 extern "C" value caml_ml_open_descriptor_out(
     Context &ctx,
     value fd)
 {
-  std::cerr << "caml_ml_open_descriptor_out" << std::endl;
-  exit(0);
-  return 1ull;
+  auto val_chan = ctx.allocCustom(&channel_ops, sizeof(fd));
+  auto chan = val_to_custom<channel>(val_chan);
+  chan->fd = val_to_int64(fd);
+  return val_chan;
 }
 
+
+
+// -----------------------------------------------------------------------------
 extern "C" value caml_register_named_value(
     Context &ctx,
     value vname,
@@ -41,6 +78,9 @@ extern "C" value caml_register_named_value(
   return kUnit;
 }
 
+
+
+// -----------------------------------------------------------------------------
 extern "C" value caml_set_oo_id(
     Context &ctx,
     value obj)

@@ -31,8 +31,8 @@ value Heap::allocString(const char *str, size_t length) {
   //
   // 0   1   2   3   4   5   6   7
   // 'a' 'b' 'c' 'd' \0  \0  \0  \3
-  size_t size = (length + sizeof(value)) / sizeof(value);
-  size_t blkSize = size * sizeof(value);
+  const size_t size = (length + sizeof(value)) / sizeof(value);
+  const size_t blkSize = size * sizeof(value);
   value b = allocBlock(size, kStringTag);
   char *ptr = reinterpret_cast<char *>(reinterpret_cast<value *>(b) + 1);
   memcpy(ptr, str, length);
@@ -54,4 +54,9 @@ value Heap::allocBlock(size_t n, uint8_t tag) {
     *(reinterpret_cast<value *>(block) + i + 1) = 1ull;
   }
   return reinterpret_cast<value>(block);
+}
+
+value Heap::allocCustom(CustomOperations *op, size_t size) {
+  const size_t words = 1 + (size + sizeof(value) - 1) / sizeof(value);
+  return allocBlock(words, kCustomTag);
 }

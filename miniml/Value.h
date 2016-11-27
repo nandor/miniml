@@ -17,6 +17,7 @@ class Context;
 class Heap;
 
 
+
 /// Well-known tags.
 static const uint8_t kClosureTag     = 247;
 static const uint8_t kInfixTag       = 249;
@@ -26,8 +27,10 @@ static const uint8_t kDoubleArrayTag = 254;
 static const uint8_t kCustomTag      = 255;
 
 
+
 /// All values are encoded in 64 bits.
 typedef uint64_t value;
+
 
 
 /// Creates a value from an int64.
@@ -62,6 +65,12 @@ inline value &val_field(value val, size_t n) {
   assert((val_size(val) >= n) && "Index out of bounds");
   return *(val_ptr(val) + n);
 }
+/// Returns the poitnter to a custom value.
+template<typename T> T* val_to_custom(value val) {
+  assert(val_tag(val) == kCustomTag && "Value is not custom.");
+  return reinterpret_cast<T*>(&val_field(val, 1));
+}
+
 
 
 

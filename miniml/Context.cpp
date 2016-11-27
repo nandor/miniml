@@ -33,6 +33,7 @@ CustomOperations int64_ops = {
 };
 
 
+
 // -----------------------------------------------------------------------------
 // Context
 // -----------------------------------------------------------------------------
@@ -59,6 +60,10 @@ value Context::allocString(const char *str, size_t length) {
 
 value Context::allocBlock(size_t n, uint8_t tag) {
   return heap_.allocBlock(n, tag);
+}
+
+value Context::allocCustom(CustomOperations *op, size_t size) {
+  return heap_.allocCustom(op, size);
 }
 
 void Context::registerOperations(CustomOperations *value) {

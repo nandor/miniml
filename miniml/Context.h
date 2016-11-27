@@ -29,6 +29,7 @@ class Context {
   value allocDouble(double v);
   value allocString(const char *str, size_t length);
   value allocBlock(size_t n, uint8_t tag);
+  value allocCustom(CustomOperations *op, size_t size);
 
   // Custom value operations.
   void registerOperations(CustomOperations *value);
