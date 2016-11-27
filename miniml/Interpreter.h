@@ -60,6 +60,8 @@ class Interpreter {
   void runASSIGN(uint32_t n);
   void runENVACC();
   void runGETFIELD(uint32_t n);
+  void runGETFLOATFIELD(uint32_t n);
+  void runSETFIELD(uint32_t n);
   void runENVACC(uint32_t n);
   void runPUSHENVACC(uint32_t n);
   void runPUSH_RETADDR();
@@ -67,12 +69,17 @@ class Interpreter {
   void runAPPLY1();
   void runAPPLY2();
   void runAPPLY3();
+  void runAPPTERM();
   void runAPPTERM1();
   void runAPPTERM2();
+  void runAPPTERM3();
   void runRESTART();
   void runGRAB(uint32_t n);
   void runCLOSURE();
   void runCLOSUREREC();
+  void runOFFSETCLOSUREM2();
+  void runOFFSETCLOSURE(uint32_t n);
+  void runPUSHOFFSETCLOSUREM2();
   void runPUSHOFFSETCLOSURE(uint32_t n);
   void runGETGLOBAL(uint32_t n);
   void runPUSHGETGLOBAL(uint32_t n);
@@ -82,10 +89,12 @@ class Interpreter {
   void runATOM(uint32_t n);
   void runPUSHATOM(uint32_t n);
   void runMAKEBLOCK(uint32_t n);
+  void runMAKEFLOATBLOCK(uint32_t n);
   void runBRANCH(int32_t ofs);
   void runBRANCHIF(int32_t ofs);
   void runBRANCHIFNOT(int32_t ofs);
   void runSWITCH();
+  void runBOOLNOT();
   void runPUSHTRAP(int32_t ofs);
   void runPOPTRAP();
   void runCHECK_SIGNALS();
@@ -98,6 +107,7 @@ class Interpreter {
   void runNEQ();
   void runRETURN(uint32_t n);
   void runSTOP();
+  void runRAISE();
 
  private:
   /// Reference to the context.
