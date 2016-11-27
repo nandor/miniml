@@ -14,6 +14,28 @@ using namespace miniml;
 
 
 // -----------------------------------------------------------------------------
+// int32
+// -----------------------------------------------------------------------------
+value int32_deserialize(Context &ctx, StreamReader &stream) {
+  return ctx.allocInt64(stream.getInt32be());
+}
+
+
+
+CustomOperations int32_ops = {
+  "_j",
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  int32_deserialize,
+  nullptr,
+  nullptr,
+};
+
+
+
+// -----------------------------------------------------------------------------
 // int64
 // -----------------------------------------------------------------------------
 value int64_deserialize(Context &ctx, StreamReader &stream) {
@@ -36,12 +58,40 @@ CustomOperations int64_ops = {
 
 
 // -----------------------------------------------------------------------------
+// nativeint
+// -----------------------------------------------------------------------------
+value nativeint_deserialize(Context &ctx, StreamReader &stream) {
+  switch (stream.getUInt8()) {
+  case 1: return ctx.allocInt64(stream.getInt32be());
+  case 2: return ctx.allocInt64(stream.getInt64le());
+  default: throw std::runtime_error("Cannot deserialize nativeint");
+  }
+}
+
+
+
+CustomOperations nativeint_ops = {
+  "_n",
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nativeint_deserialize,
+  nullptr,
+  nullptr,
+};
+
+
+
+// -----------------------------------------------------------------------------
 // Context
 // -----------------------------------------------------------------------------
 Context::Context()
   : heap_()
 {
+  custom_["_i"] = &int32_ops;
   custom_["_j"] = &int64_ops;
+  custom_["_n"] = &nativeint_ops;
 }
 
 Context::~Context() {

@@ -55,57 +55,61 @@ void Interpreter::run() {
   for (;;) {
     auto op = code[PC++];
     switch (op) {
-    case   0: runACC(0); break;
-    case   1: runACC(1); break;
-    case   2: runACC(2); break;
-    case   3: runACC(3); break;
-    case   4: runACC(4); break;
-    case   5: runACC(5); break;
-    case   6: runACC(6); break;
-    case   7: runACC(7); break;
-    case   8: runACC(code[PC++]); break;
-    case   9: runPUSH(); break;
-    case  10: runPUSH(); break;
-    case  11: runPUSHACC(1); break;
-    case  12: runPUSHACC(2); break;
-    case  13: runPUSHACC(3); break;
-    case  14: runPUSHACC(4); break;
-    case  15: runPUSHACC(5); break;
-    case  16: runPUSHACC(6); break;
-    case  17: runPUSHACC(7); break;
-    case  18: runPUSHACC(code[PC++]); break;
-    case  19: runPOP(code[PC++]); break;
-
-    case  21: runENVACC(1); break;
-    case  22: runENVACC(2); break;
-    case  23: runENVACC(3); break;
-    case  24: runENVACC(4); break;
-    case  25: runENVACC(code[PC++]); break;
-    case  26: runPUSHENVACC(1); break;
-    case  27: runPUSHENVACC(2); break;
-    case  28: runPUSHENVACC(3); break;
-    case  29: runPUSHENVACC(4); break;
-    case  30: runPUSHENVACC(code[PC++]); break;
+    case   0: runACC(0);                  break;
+    case   1: runACC(1);                  break;
+    case   2: runACC(2);                  break;
+    case   3: runACC(3);                  break;
+    case   4: runACC(4);                  break;
+    case   5: runACC(5);                  break;
+    case   6: runACC(6);                  break;
+    case   7: runACC(7);                  break;
+    case   8: runACC(code[PC++]);         break;
+    case   9: runPUSH();                  break;
+    case  10: runPUSH();                  break;
+    case  11: runPUSHACC(1);              break;
+    case  12: runPUSHACC(2);              break;
+    case  13: runPUSHACC(3);              break;
+    case  14: runPUSHACC(4);              break;
+    case  15: runPUSHACC(5);              break;
+    case  16: runPUSHACC(6);              break;
+    case  17: runPUSHACC(7);              break;
+    case  18: runPUSHACC(code[PC++]);     break;
+    case  19: runPOP(code[PC++]);         break;
+    case  20: runASSIGN(code[PC++]);      break;
+    case  21: runENVACC(1);               break;
+    case  22: runENVACC(2);               break;
+    case  23: runENVACC(3);               break;
+    case  24: runENVACC(4);               break;
+    case  25: runENVACC(code[PC++]);      break;
+    case  26: runPUSHENVACC(1);           break;
+    case  27: runPUSHENVACC(2);           break;
+    case  28: runPUSHENVACC(3);           break;
+    case  29: runPUSHENVACC(4);           break;
+    case  30: runPUSHENVACC(code[PC++]);  break;
 
     case  32: runAPPLY(code[PC++]); break;
     case  33: runAPPLY1(); break;
     case  34: runAPPLY2(); break;
     case  35: runAPPLY3(); break;
 
+    case  37: runAPPTERM1(); break;
     case  38: runAPPTERM2(); break;
 
+    case  40: runRETURN(code[PC++]); break;
+
+    case  42: runGRAB(code[PC++]); break;
     case  43: runCLOSURE(); break;
     case  44: runCLOSUREREC(); break;
 
-    case  53: runGETGLOBAL(code[PC++]); break;
+    case  53: runGETGLOBAL(code[PC++]);     break;
     case  54: runPUSHGETGLOBAL(code[PC++]); break;
-    case  55: runGETGLOBALFIELD(); break;
-    case  56: runPUSHGETGLOBALFIELD(); break;
-    case  57: runSETGLOBAL(code[PC++]); break;
-    case  58: runATOM(0); break;
-    case  59: runATOM(code[PC++]); break;
-    case  60: runPUSHATOM(0); break;
-    case  61: runPUSHATOM(code[PC++]); break;
+    case  55: runGETGLOBALFIELD();          break;
+    case  56: runPUSHGETGLOBALFIELD();      break;
+    case  57: runSETGLOBAL(code[PC++]);     break;
+    case  58: runATOM(0);                   break;
+    case  59: runATOM(code[PC++]);          break;
+    case  60: runPUSHATOM(0);               break;
+    case  61: runPUSHATOM(code[PC++]);      break;
 
     case  62: runMAKEBLOCK(code[PC++]); break;
     case  63: runMAKEBLOCK(1); break;
@@ -119,9 +123,12 @@ void Interpreter::run() {
     case  71: runGETFIELD(code[PC++]); break;
 
     case  84: runBRANCH(code[PC++]); break;
-    case  85: runBRANCH(code[PC++]); break;
-    case  86: runBRANCH(code[PC++]); break;
+    case  85: runBRANCHIF(code[PC++]); break;
+    case  86: runBRANCHIFNOT(code[PC++]); break;
 
+    case  89: runPUSHTRAP(code[PC++]); break;
+
+    case  92: runCHECK_SIGNALS(); break;
     case  93: runCCALL(1); break;
     case  94: runCCALL(2); break;
     case  95: runCCALL(3); break;
@@ -141,13 +148,14 @@ void Interpreter::run() {
 
     case 119: runLSRINT(); break;
 
+    case 122: runNEQ();   break;
     case 125: runGTINT(); break;
     case 127: runOFFSETINT(code[PC++]); break;
 
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
-    std::cout << (value)(A) << " " << stack.sp() << std::endl;
+    std::cerr << stack.sp() << std::endl;
     //getchar();
   }
 }
@@ -167,7 +175,7 @@ void Interpreter::runPUSH() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runPUSHACC(uint32_t n) {
-  std::cerr << "PUSHACC" << std::endl;
+  std::cerr << "PUSHACC" << n << std::endl;
   stack.push(A);
   A = stack[n];
 }
@@ -179,9 +187,10 @@ void Interpreter::runPOP(uint32_t n) {
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runASSIGN() {
+void Interpreter::runASSIGN(uint32_t n) {
   std::cerr << "ASSIGN" << std::endl;
-
+  stack[n] = A;
+  A = kUnit;
 }
 
 // -----------------------------------------------------------------------------
@@ -226,7 +235,7 @@ void Interpreter::runAPPLY(uint32_t args) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runAPPLY1() {
-  std::cerr << "APPLY1 " << std::endl;
+  std::cerr << "APPLY1" << std::endl;
   value arg = stack.pop();
   stack.push(val_int64(extraArgs));
   stack.push(env);
@@ -239,8 +248,17 @@ void Interpreter::runAPPLY1() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runAPPLY2() {
-  std::cerr << "APPLY2 " << std::endl;
-  exit(0);
+  std::cerr << "APPLY2" << std::endl;
+  value arg2 = stack.pop();
+  value arg1 = stack.pop();
+  stack.push(val_int64(extraArgs));
+  stack.push(env);
+  stack.push(val_int64(PC));
+  stack.push(arg1);
+  stack.push(arg2);
+  PC = A.getCode();
+  env = A;
+  extraArgs = 1;
 }
 
 
@@ -251,7 +269,21 @@ void Interpreter::runAPPLY3() {
 }
 
 // -----------------------------------------------------------------------------
+void Interpreter::runAPPTERM1() {
+  std::cerr << "APPTERM1" << std::endl;
+  uint32_t n = code[PC++];
+
+  value arg = stack.pop();
+  stack.pop_n(n - 1);
+  stack.push(arg);
+  PC = A.getCode();
+  env = A;
+  extraArgs++;
+}
+
+// -----------------------------------------------------------------------------
 void Interpreter::runAPPTERM2() {
+  std::cerr << "APPTERM2" << std::endl;
   uint32_t n = code[PC++];
 
   value arg2 = stack.pop();
@@ -271,9 +303,21 @@ void Interpreter::runRESTART() {
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runGRAB() {
+void Interpreter::runGRAB(uint32_t n) {
   std::cerr << "GRAB" << std::endl;
-
+  if (extraArgs >= n) {
+    extraArgs -= n;
+  } else {
+    A = ctx.allocBlock(extraArgs + 3, kClosureTag);
+    A.setCode(PC - 3);
+    A.setField(1, env);
+    for (size_t i = 0; i < extraArgs + 1; ++i) {
+      A.setField(2 + i, stack.pop());
+    }
+    PC = val_to_int64(stack.pop());
+    env = stack.pop();
+    extraArgs = val_to_int64(stack.pop());
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -287,7 +331,7 @@ void Interpreter::runCLOSURE() {
   }
 
   A = ctx.allocBlock(n + 1, kClosureTag);
-  A.setField(0, Value(PC + ofs - 1));
+  A.setCode(PC + ofs - 1);
   for (uint32_t i = 0; i < n; ++i) {
     A.setField(i + 1, stack.pop());
   }
@@ -308,7 +352,7 @@ void Interpreter::runCLOSUREREC() {
     A.setField(f * 2 - 1 + i, stack[i]);
   }
   stack.pop_n(v);
-  A.setField(0, Value(PC + static_cast<int32_t>(code[PC])));
+  A.setCode(PC + static_cast<int32_t>(code[PC]));
   stack.push(A);
   for (uint32_t i = 1; i < f; ++i) {
     Value header((i * 2) << 10 | kInfixTag);
@@ -400,13 +444,17 @@ void Interpreter::runBRANCH(int32_t ofs) {
 // -----------------------------------------------------------------------------
 void Interpreter::runBRANCHIF(int32_t ofs) {
   std::cerr << "BRANCHIF" << std::endl;
-
+  if (A != kFalse) {
+    PC += ofs - 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBRANCHIFNOT(int32_t ofs) {
   std::cerr << "BRANCHIFNOT" << std::endl;
-
+  if (A == kFalse) {
+    PC += ofs - 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -416,9 +464,13 @@ void Interpreter::runSWITCH() {
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runPUSHTRAP() {
+void Interpreter::runPUSHTRAP(int32_t ofs) {
   std::cerr << "PUSHTRAP" << std::endl;
-
+  stack.push(val_int64(extraArgs));
+  stack.push(env);
+  stack.push(val_int64(trapSP));
+  stack.push(val_int64(PC + ofs - 1));
+  trapSP = stack.sp();
 }
 
 // -----------------------------------------------------------------------------
@@ -460,22 +512,22 @@ void Interpreter::runCCALL(uint32_t n) {
   }
   case 1: {
     auto *fn = ((value(*)(Context&, value, value))prim[p]);
-    A = fn(ctx, A, stack[0]);
+    A = fn(ctx, A, stack[1]);
     break;
   }
   case 2: {
     auto *fn = ((value(*)(Context&, value, value, value))prim[p]);
-    A = fn(ctx, A, stack[0], stack[1]);
+    A = fn(ctx, A, stack[1], stack[2]);
     break;
   }
   case 3: {
     auto *fn = ((value(*)(Context&, value, value, value, value))prim[p]);
-    A = fn(ctx, A, stack[0], stack[1], stack[2]);
+    A = fn(ctx, A, stack[1], stack[2], stack[3]);
     break;
   }
   case 4: {
     auto *fn = ((value(*)(Context&, value, value, value, value, value))prim[p]);
-    A = fn(ctx, A, stack[0], stack[1], stack[2], stack[3]);
+    A = fn(ctx, A, stack[1], stack[2], stack[3], stack[4]);
     break;
   }
   default:
@@ -500,11 +552,36 @@ void Interpreter::runOFFSETINT(int32_t ofs) {
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runGTINT() {
-  std::cerr << "GTINT" << std::endl;
-  if (A.getInt64() > stack.pop()) {
+void Interpreter::runNEQ() {
+  std::cerr << "NEQ" << std::endl;
+  if (A.getInt64() != val_to_int64(stack.pop())) {
     A = kTrue;
   } else {
     A = kFalse;
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runGTINT() {
+  std::cerr << "GTINT" << std::endl;
+  if (A.getInt64() > val_to_int64(stack.pop())) {
+    A = kTrue;
+  } else {
+    A = kFalse;
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runRETURN(uint32_t n) {
+  std::cerr << "RETURN" << std::endl;
+  stack.pop_n(n);
+  if (extraArgs > 0) {
+    extraArgs -= 1;
+    PC = A.getCode();
+    env = A;
+  } else {
+    PC = val_to_int64(stack.pop());
+    env = stack.pop();
+    extraArgs = val_to_int64(stack.pop());
   }
 }

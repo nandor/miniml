@@ -70,11 +70,6 @@ inline value *val_ptr(value val) {
   assert((val & 1) == 0 && "Value is not a block.");
   return reinterpret_cast<value *>(val) + 1;
 }
-/// Extracts the int value.
-inline int64_t val_to_int64(value val) {
-  assert((val & 1) == 1 && "Value is not an integer.");
-  return static_cast<int64_t>(val) >> 1ll;
-}
 /// Returns a pointer to a field.
 inline value &val_field(value val, size_t n) {
   assert((val_size(val) >= n) && "Index out of bounds");
@@ -92,11 +87,25 @@ inline CustomOperations *val_ops(value val) {
   return reinterpret_cast<CustomOperations*>(val_field(val, 0));
 }
 /// Returns the code value of a closure.
-inline uint64_t val_code(value val) {
+inline uint64_t &val_code(value val) {
   assert(val_tag(val) == kClosureTag && "Value is not a closure.");
-  return reinterpret_cast<uint64_t>(val_field(val, 0));
+  return reinterpret_cast<uint64_t&>(val_field(val, 0));
 }
-
+/// Extracts the int value.
+inline int64_t val_to_int64(value val) {
+  assert((val & 1) == 1 && "Value is not an integer.");
+  return static_cast<int64_t>(val) >> 1ll;
+}
+/// Extracts the double value.
+inline double val_to_double(value val) {
+  assert(val_tag(val) == kDoubleTag && "Value is not a double.");
+  return *reinterpret_cast<double *>(val_ptr(val));
+}
+/// Extracts the string value.
+inline const char *val_to_string(value val) {
+  assert(val_tag(val) == kStringTag && "Value is not a string.");
+  return reinterpret_cast<const char *>(val_ptr(val));
+}
 
 
 /// Wrapper around a block/integer.
@@ -170,23 +179,23 @@ class Value final {
     return val_ptr(value_);
   }
 
-  /// Decodes the value.
-  inline int64_t getInt64() const {
-    return val_to_int64(value_);
-  }
-  inline double getDouble() const {
-    assert(tag() == kDoubleTag && "Value is not a double.");
-    return static_cast<double>(*ptr());
-  }
-  inline const char *getString() const {
-    assert(tag() == kStringTag && "Value is not a string.");
-    return reinterpret_cast<const char *>(ptr());
-  }
+  /// Returns some special attributes.
   inline const CustomOperations *getOps() const {
     return val_ops(value_);
   }
   inline uint64_t getCode() const {
     return val_code(value_);
+  }
+
+  /// Decodes the value.
+  inline int64_t getInt64() const {
+    return val_to_int64(value_);
+  }
+  inline double getDouble() const {
+    return val_to_double(value_);
+  }
+  inline const char *getString() const {
+    return val_to_string(value_);
   }
 
   /// Returns the length of a string.
@@ -195,6 +204,11 @@ class Value final {
     const auto data = reinterpret_cast<const char *>(ptr());
     const size_t blkSize = size() * sizeof(value);
     return blkSize - data[blkSize - 1] - 1;
+  }
+
+  /// Sets the code of a closure.
+  inline void setCode(uint64_t code) {
+    val_code(value_) = code;
   }
 
   /// Sets a field of the block.

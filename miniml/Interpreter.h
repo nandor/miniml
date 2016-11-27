@@ -21,8 +21,8 @@ class Stack {
   /// Pops n values from the stack.
   void pop_n(unsigned n);
   /// Peeks at a stack value.
-  value operator[](unsigned n) {
-    return stack_[n];
+  value &operator[](unsigned n) {
+    return *(stack_.rbegin() + n);
   }
   /// Returns the stack pointer value.
   unsigned sp() const {
@@ -57,7 +57,7 @@ class Interpreter {
   void runPUSH();
   void runPUSHACC(uint32_t n);
   void runPOP(uint32_t n);
-  void runASSIGN();
+  void runASSIGN(uint32_t n);
   void runENVACC();
   void runGETFIELD(uint32_t n);
   void runENVACC(uint32_t n);
@@ -67,9 +67,10 @@ class Interpreter {
   void runAPPLY1();
   void runAPPLY2();
   void runAPPLY3();
+  void runAPPTERM1();
   void runAPPTERM2();
   void runRESTART();
-  void runGRAB();
+  void runGRAB(uint32_t n);
   void runCLOSURE();
   void runCLOSUREREC();
   void runPUSHOFFSETCLOSURE();
@@ -85,7 +86,7 @@ class Interpreter {
   void runBRANCHIF(int32_t ofs);
   void runBRANCHIFNOT(int32_t ofs);
   void runSWITCH();
-  void runPUSHTRAP();
+  void runPUSHTRAP(int32_t ofs);
   void runPOPTRAP();
   void runCHECK_SIGNALS();
   void runCONST(int32_t n);
@@ -94,6 +95,8 @@ class Interpreter {
   void runLSRINT();
   void runOFFSETINT(int32_t ofs);
   void runGTINT();
+  void runNEQ();
+  void runRETURN(uint32_t n);
 
  private:
   /// Reference to the context.
