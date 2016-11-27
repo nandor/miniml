@@ -50,7 +50,7 @@ class Interpreter {
   ~Interpreter();
 
   // Interprets a bytecode file.
-  void run();
+  Value run();
 
  private:
   void runACC(uint32_t n);
@@ -73,7 +73,7 @@ class Interpreter {
   void runGRAB(uint32_t n);
   void runCLOSURE();
   void runCLOSUREREC();
-  void runPUSHOFFSETCLOSURE();
+  void runPUSHOFFSETCLOSURE(uint32_t n);
   void runGETGLOBAL(uint32_t n);
   void runPUSHGETGLOBAL(uint32_t n);
   void runGETGLOBALFIELD();
@@ -97,6 +97,7 @@ class Interpreter {
   void runGTINT();
   void runNEQ();
   void runRETURN(uint32_t n);
+  void runSTOP();
 
  private:
   /// Reference to the context.
@@ -116,7 +117,7 @@ class Interpreter {
   /// Number of extra arguments to a function.
   uint64_t extraArgs;
   /// Environment.
-  Value env;
+  value env;
   /// Global state.
   Value global;
   /// Atom table.

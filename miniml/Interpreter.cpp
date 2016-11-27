@@ -50,7 +50,7 @@ Interpreter::Interpreter(
 Interpreter::~Interpreter() {
 }
 
-void Interpreter::run() {
+Value Interpreter::run() {
   PC = 0;
   for (;;) {
     auto op = code[PC++];
@@ -101,15 +101,18 @@ void Interpreter::run() {
     case  43: runCLOSURE(); break;
     case  44: runCLOSUREREC(); break;
 
-    case  53: runGETGLOBAL(code[PC++]);     break;
-    case  54: runPUSHGETGLOBAL(code[PC++]); break;
-    case  55: runGETGLOBALFIELD();          break;
-    case  56: runPUSHGETGLOBALFIELD();      break;
-    case  57: runSETGLOBAL(code[PC++]);     break;
-    case  58: runATOM(0);                   break;
-    case  59: runATOM(code[PC++]);          break;
-    case  60: runPUSHATOM(0);               break;
-    case  61: runPUSHATOM(code[PC++]);      break;
+    case  50: runPUSHOFFSETCLOSURE(0);          break;
+    case  51: runPUSHOFFSETCLOSURE(2);          break;
+    case  52: runPUSHOFFSETCLOSURE(code[PC++]); break;
+    case  53: runGETGLOBAL(code[PC++]);         break;
+    case  54: runPUSHGETGLOBAL(code[PC++]);     break;
+    case  55: runGETGLOBALFIELD();              break;
+    case  56: runPUSHGETGLOBALFIELD();          break;
+    case  57: runSETGLOBAL(code[PC++]);         break;
+    case  58: runATOM(0);                       break;
+    case  59: runATOM(code[PC++]);              break;
+    case  60: runPUSHATOM(0);                   break;
+    case  61: runPUSHATOM(code[PC++]);          break;
 
     case  62: runMAKEBLOCK(code[PC++]); break;
     case  63: runMAKEBLOCK(1); break;
@@ -127,6 +130,7 @@ void Interpreter::run() {
     case  86: runBRANCHIFNOT(code[PC++]); break;
 
     case  89: runPUSHTRAP(code[PC++]); break;
+    case  90: runPOPTRAP(); break;
 
     case  92: runCHECK_SIGNALS(); break;
     case  93: runCCALL(1); break;
@@ -151,6 +155,8 @@ void Interpreter::run() {
     case 122: runNEQ();   break;
     case 125: runGTINT(); break;
     case 127: runOFFSETINT(code[PC++]); break;
+
+    case 143: return A;
 
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
@@ -208,14 +214,14 @@ void Interpreter::runGETFIELD(uint32_t n) {
 // -----------------------------------------------------------------------------
 void Interpreter::runENVACC(uint32_t n) {
   std::cerr << "ENVACC" << std::endl;
-  A = env.getField(n);
+  A = val_field(env, n);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runPUSHENVACC(uint32_t n) {
   std::cerr << "PUSHENVACC" << std::endl;
   stack.push(A);
-  A = env.getField(n);
+  A = val_field(env, n);
 }
 
 // -----------------------------------------------------------------------------
@@ -273,12 +279,11 @@ void Interpreter::runAPPTERM1() {
   std::cerr << "APPTERM1" << std::endl;
   uint32_t n = code[PC++];
 
-  value arg = stack.pop();
+  value arg1 = stack.pop();
   stack.pop_n(n - 1);
-  stack.push(arg);
+  stack.push(arg1);
   PC = A.getCode();
   env = A;
-  extraArgs++;
 }
 
 // -----------------------------------------------------------------------------
@@ -366,9 +371,10 @@ void Interpreter::runCLOSUREREC() {
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runPUSHOFFSETCLOSURE() {
-  std::cerr << "PUSHOFFSETCLOSURE" << std::endl;
-
+void Interpreter::runPUSHOFFSETCLOSURE(uint32_t n) {
+  std::cerr << "PUSHOFFSETCLOSURE" << n << std::endl;
+  stack.push(A);
+  A = env - n * sizeof(value);
 }
 
 // -----------------------------------------------------------------------------
@@ -476,7 +482,9 @@ void Interpreter::runPUSHTRAP(int32_t ofs) {
 // -----------------------------------------------------------------------------
 void Interpreter::runPOPTRAP() {
   std::cerr << "POPTRAP" << std::endl;
-
+  stack.pop();
+  trapSP = val_to_int64(stack.pop());
+  stack.pop_n(2);
 }
 
 // -----------------------------------------------------------------------------
