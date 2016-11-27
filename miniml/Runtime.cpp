@@ -26,6 +26,7 @@ CustomOperations channel_ops {
   nullptr,
   nullptr,
   nullptr,
+  nullptr,
 };
 
 

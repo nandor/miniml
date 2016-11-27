@@ -142,45 +142,57 @@ void miniml::putValue(Context &ctx, Value value, StreamWriter &stream) {
 // -----------------------------------------------------------------------------
 // printValue
 // -----------------------------------------------------------------------------
-static void printValueImpl(Value value, std::ostream &os, size_t indent) {
-  for (size_t i = 0; i < indent; ++i) {
-    os << "  ";
-  }
-  if (value.isInt64()) {
-    os << value.getInt64();
-    return;
-  }
-  if (value.isDouble()) {
-    os << value.getDouble();
-    return;
-  }
-  if (value.isString()) {
-    os << '"';
-    const char *str = value.getString();
-    for (size_t i = 0; i < value.strlen(); ++i) {
-      if (isprint(str[i])) {
-        os << str[i];
-      } else {
-        os << ".";
-      }
-    }
-    os << '"';
-    return;
-  }
-  if (value.isBlock()) {
-    os << "(" << static_cast<int>(value.tag()) << ") {\n";
-    for (size_t i = 0; i < value.size(); ++i) {
-      printValueImpl(value.getField(i), os, indent + 1);
-      os << "\n";
-    }
+void miniml::printValue(Context &ctx, Value val, std::ostream &os) {
+  /// Helper to recursively print values.
+  std::function<void(Value, size_t)> print = [&](Value val, size_t indent) {
     for (size_t i = 0; i < indent; ++i) {
       os << "  ";
     }
-    os << "}";
-  }
-}
+    if (val.isInt64()) {
+      os << val.getInt64();
+      return;
+    }
+    if (val.isDouble()) {
+      os << val.getDouble();
+      return;
+    }
+    if (val.isString()) {
+      os << '"';
+      const char *str = val.getString();
+      for (size_t i = 0; i < val.strlen(); ++i) {
+        if (isprint(str[i])) {
+          os << str[i];
+        } else {
+          os << ".";
+        }
+      }
+      os << '"';
+      return;
+    }
+    if (val.isCustom()) {
+      auto ops = val.getOps();
+      printf("%p\n", ops);
+      if (ops->print) {
+        ops->print(ctx, os);
+      } else {
+        os << "<custom>";
+      }
+      return;
+    }
+    if (val.isBlock()) {
+      os << "(" << static_cast<int>(val.tag()) << ") {\n";
+      for (size_t i = 0; i < val.size(); ++i) {
+        print(val.getField(i), indent + 1);
+        os << "\n";
+      }
+      for (size_t i = 0; i < indent; ++i) {
+        os << "  ";
+      }
+      os << "}";
+    }
+  };
 
-void miniml::printValue(Context &ctx, Value value, std::ostream &os) {
-  printValueImpl(value, os, 0);
+  /// Print value, recursing into blocks.
+  print(val, 0);
   os << "\n";
 }

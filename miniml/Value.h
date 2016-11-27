@@ -33,6 +33,20 @@ typedef uint64_t value;
 
 
 
+/// Table of custom operations.
+struct CustomOperations {
+  const char *identifier;
+  void     (*finalize)    (Context &ctx, value);
+  int      (*compare)     (Context &ctx, value, value);
+  uint64_t (*hash)        (Context &ctx, value, value);
+  void     (*serialize)   (Context &ctx, value, StreamWriter &stream);
+  value    (*deserialize) (Context &ctx, StreamReader &stream);
+  void     (*print)       (Context &ctx, std::ostream &os);
+  int      (*compare_ext) (Context &ctx, value, value);
+};
+
+
+
 /// Creates a value from an int64.
 inline value val_int64(int64_t val) {
   return (val << 1ll) + 1ll;
@@ -65,10 +79,16 @@ inline value &val_field(value val, size_t n) {
   assert((val_size(val) >= n) && "Index out of bounds");
   return *(val_ptr(val) + n);
 }
-/// Returns the poitnter to a custom value.
-template<typename T> T* val_to_custom(value val) {
+/// Returns the pointer to a custom value.
+template<typename T>
+inline T* val_to_custom(value val) {
   assert(val_tag(val) == kCustomTag && "Value is not custom.");
   return reinterpret_cast<T*>(&val_field(val, 1));
+}
+/// Returns a pointer to the ops.
+inline CustomOperations *val_ops(value val) {
+  assert(val_tag(val) == kCustomTag && "Value is not custom.");
+  return reinterpret_cast<CustomOperations*>(val_field(val, 0));
 }
 
 
@@ -110,19 +130,17 @@ class Value final {
     return value_;
   }
 
-  /// Checks if the value is of a specific type.
+  /// Checks if the value is an integer or a block.
   inline bool isInt64() const {
     return value_ & 1;
-  }
-  inline bool isDouble() const {
-    return !(value_ & 1) && tag() == kDoubleTag;
-  }
-  inline bool isString() const {
-    return !(value_ & 1) && tag() == kStringTag;
   }
   inline bool isBlock() const {
     return !(value_ & 1);
   }
+  /// Checks if the value is a specific object.
+  inline bool isDouble() const { return tag() == kDoubleTag; }
+  inline bool isString() const { return tag() == kStringTag; }
+  inline bool isCustom() const { return tag() == kCustomTag; }
 
   /// Returns the header of a block.
   inline uint64_t header() const {
@@ -157,6 +175,9 @@ class Value final {
     assert(tag() == kStringTag && "Value is not a string.");
     return reinterpret_cast<const char *>(ptr());
   }
+  inline const CustomOperations *getOps() const {
+    return val_ops(value_);
+  }
 
   /// Returns the length of a string.
   size_t strlen() const {
@@ -187,19 +208,6 @@ class Value final {
 static Value kUnit(1ull);
 static Value kTrue(3ull);
 static value kFalse(1ull);
-
-
-
-/// Table of custom operations.
-struct CustomOperations {
-  const char *identifier;
-  void     (*finalize)    (Context &ctx, value);
-  int      (*compare)     (Context &ctx, value, value);
-  uint64_t (*hash)        (Context &ctx, value, value);
-  void     (*serialize)   (Context &ctx, value, StreamWriter &stream);
-  value    (*deserialize) (Context &ctx, StreamReader &stream);
-  int      (*compare_ext) (Context &ctx, value, value);
-};
 
 
 

@@ -30,6 +30,7 @@ CustomOperations int64_ops = {
   nullptr,
   int64_deserialize,
   nullptr,
+  nullptr,
 };
 
 

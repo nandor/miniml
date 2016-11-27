@@ -58,5 +58,7 @@ value Heap::allocBlock(size_t n, uint8_t tag) {
 
 value Heap::allocCustom(CustomOperations *op, size_t size) {
   const size_t words = 1 + (size + sizeof(value) - 1) / sizeof(value);
-  return allocBlock(words, kCustomTag);
+  value b = allocBlock(words, kCustomTag);
+  val_field(b, 0) = reinterpret_cast<value>(op);
+  return b;
 }
