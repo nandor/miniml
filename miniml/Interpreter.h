@@ -11,6 +11,31 @@
 namespace miniml {
 class Context;
 
+/// Interpreter stack.
+class Stack {
+ public:
+  /// Pushes a value onto the stack.
+  void push(value value);
+  /// Pops a value from the stack.
+  value pop();
+  /// Pops n values from the stack.
+  void pop_n(unsigned n);
+  /// Peeks at a stack value.
+  value operator[](unsigned n) {
+    return stack_[n];
+  }
+  /// Returns the stack pointer value.
+  unsigned sp() const {
+    return stack_.size();
+  }
+
+ private:
+  /// Vector containing stack values.
+  std::vector<value> stack_;
+};
+
+
+
 /// Interpreter implementation.
 class Interpreter {
  public:
@@ -71,8 +96,8 @@ class Interpreter {
   std::vector<void *> prim;
   /// Code being executed.
   const uint32_t *code;
-  /// Stack pointer.
-  std::vector<Value> stack;
+  /// Stack.
+  Stack stack;
   /// Program counter.
   uint64_t PC;
   /// Accumulator.

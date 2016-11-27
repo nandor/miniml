@@ -9,6 +9,28 @@ using namespace miniml;
 
 
 
+// -----------------------------------------------------------------------------
+// Stack
+// -----------------------------------------------------------------------------
+void Stack::push(value value) {
+  stack_.push_back(value);
+}
+
+value Stack::pop() {
+  value val = *stack_.rbegin();
+  stack_.pop_back();
+  return val;
+}
+
+void Stack::pop_n(uint32_t n) {
+  stack_.erase(stack_.end() - n, stack_.end());
+}
+
+
+
+// -----------------------------------------------------------------------------
+// Interpreter
+// -----------------------------------------------------------------------------
 Interpreter::Interpreter(
     Context &ctx,
     const uint32_t *code,
@@ -16,6 +38,7 @@ Interpreter::Interpreter(
     std::vector<void*> prim)
   : ctx(ctx)
   , code(code)
+  , A(1ull)
   , global(global)
   , prim(prim)
 {
@@ -112,56 +135,63 @@ void Interpreter::run() {
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
     std::cout << "PC: " << PC << std::endl;
-    std::cout << "Stack: " << stack.size() << std::endl;
+    std::cout << "Stack: " << stack.sp() << std::endl;
     std::cout << "Acc: "; printValue(ctx, A, std::cout);
     std::cout << "-----" << std::endl;
   }
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runACC(uint32_t n) {
   std::cout << "ACC" << std::endl;
   A = stack[n];
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSH() {
   std::cout << "PUSH" << std::endl;
-  stack.push_back(A);
+  stack.push(A);
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSHACC(uint32_t n) {
   std::cout << "PUSHACC " << n << std::endl;
-  stack.push_back(A);
+  stack.push(A);
   A = stack[n];
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPOP(uint32_t n) {
   std::cout << "POP" << std::endl;
-  for (uint32_t i = 0; i < n; ++i) {
-    stack.pop_back();
-  }
+  stack.pop_n(n);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runASSIGN() {
   std::cout << "ASSIGN" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runENVACC() {
   std::cout << "ENVACC" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runGETFIELD(uint32_t n) {
   std::cout << "GETFIELD" << std::endl;
   A = A.getField(n);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSH_RETADDR() {
   std::cout << "PUSH_RETADDR" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runAPPLY(uint32_t args) {
   std::cout << "APPLY " << args << std::endl;
   printValue(ctx, A, std::cout);
@@ -171,68 +201,74 @@ void Interpreter::runAPPLY(uint32_t args) {
   exit(0);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runRESTART() {
   std::cout << "RESTART" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runGRAB() {
   std::cout << "GRAB" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runCLOSURE() {
   std::cout << "CLOSURE" << std::endl;
   uint32_t n = code[PC++];
   int32_t ofs = code[PC++];
 
   if (n > 0) {
-    stack.push_back(A);
+    stack.push(A);
   }
 
   Value c = ctx.allocBlock(n + 1, kClosureTag);
   c.setField(0, PC + ofs - 1);
   for (uint32_t i = 0; i < n; ++i) {
-    c.setField(i + 1, *stack.rbegin());
-    stack.pop_back();
+    c.setField(i + 1, stack.pop());
   }
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runCLOSUREREC() {
   std::cout << "CLOSUREREC" << std::endl;
   uint32_t f = code[PC++];
   uint32_t v = code[PC++];
 
   if (v > 0) {
-    stack.push_back(A);
+    stack.push(A);
   }
 
   A = ctx.allocBlock(2 * f - 1 + v, kClosureTag);
-  for (uint32_t i = 0; i < v; ++i) {
-    stack.pop_back();
-  }
+  stack.pop_n(v);
   for (uint32_t i = 0; i < f; ++i) {
-    stack.push_back(Value(1ll));
+    stack.push(Value(1ll));
   }
   PC += f;
+  exit(0);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSHOFFSETCLOSURE() {
   std::cout << "PUSHOFFSETCLOSURE" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runGETGLOBAL(uint32_t n) {
   std::cout << "GETGLOBAL" << std::endl;
   A = global.getField(n);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSHGETGLOBAL(uint32_t n) {
   std::cout << "PUSHGETGLOBAL" << std::endl;
-  stack.push_back(A);
+  stack.push(A);
   A = global.getField(n);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runGETGLOBALFIELD() {
   std::cout << "GETGLOBALFIELD" << std::endl;
   uint32_t n = code[PC++];
@@ -241,153 +277,162 @@ void Interpreter::runGETGLOBALFIELD() {
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSHGETGLOBALFIELD() {
   std::cout << "PUSHGETGLOBALFIELD" << std::endl;
   uint32_t n = code[PC++];
   uint32_t p = code[PC++];
-  stack.push_back(A);
+  stack.push(A);
   A = global.getField(n).getField(p);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runSETGLOBAL(uint32_t n) {
   std::cout << "SETGLOBAL" << std::endl;
   global.setField(n, A);
   A = kUnit;
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runATOM(uint32_t n) {
   std::cout << "ATOM " << n << std::endl;
   A = atom[n];
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSHATOM(uint32_t n) {
   std::cout << "PUSHATOM " << n << std::endl;
-  stack.push_back(A);
+  stack.push(A);
   A = atom[n];
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runMAKEBLOCK(uint32_t n) {
   std::cout << "MAKEBLOCK" << std::endl;
   uint32_t t = code[PC++];
   Value block = ctx.allocBlock(n, t);
   block.setField(0, A);
   for (uint32_t i = 1; i < n; ++i) {
-    block.setField(i, *stack.rbegin());
-    stack.pop_back();
+    block.setField(i, stack.pop());
   }
   A = block;
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runBRANCH(int32_t ofs) {
   std::cout << "BRANCH" << std::endl;
   PC += ofs - 1;
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runBRANCHIF(int32_t ofs) {
   std::cout << "BRANCHIF" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runBRANCHIFNOT(int32_t ofs) {
   std::cout << "BRANCHIFNOT" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runSWITCH() {
   std::cout << "SWITCH" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSHTRAP() {
   std::cout << "PUSHTRAP" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPOPTRAP() {
   std::cout << "POPTRAP" << std::endl;
 
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runCHECK_SIGNALS() {
   std::cout << "CHECK_SIGNALS" << std::endl;
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runCONST(int32_t n) {
   std::cout << "CONST" << std::endl;
   A = Value(static_cast<int64_t>(n) << 1ll | 1ll);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runPUSHCONST(int32_t n) {
   std::cout << "PUSHCONST" << std::endl;
-  stack.push_back(A);
+  stack.push(A);
   A = Value(static_cast<int64_t>(n) << 1ll | 1ll);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runCCALL(uint32_t n) {
   std::cout << "CCALL" << n << std::endl;
   uint32_t p = code[PC++];
 
-  Value result;
-
-  stack.push_back(env);
+  stack.push(env);
 
   switch (n) {
   case 0: {
     auto *fn = ((value(*)(Context&, value))prim[p]);
-    result = fn(ctx, A);
+    A = fn(ctx, A);
     break;
   }
   case 1: {
     auto *fn = ((value(*)(Context&, value, value))prim[p]);
-    result = fn(ctx, A, stack[0]);
+    A = fn(ctx, A, stack[0]);
     break;
   }
   case 2: {
     auto *fn = ((value(*)(Context&, value, value, value))prim[p]);
-    result = fn(ctx, A, stack[0], stack[1]);
+    A = fn(ctx, A, stack[0], stack[1]);
     break;
   }
   case 3: {
     auto *fn = ((value(*)(Context&, value, value, value, value))prim[p]);
-    result = fn(ctx, A, stack[0], stack[1], stack[2]);
+    A = fn(ctx, A, stack[0], stack[1], stack[2]);
     break;
   }
   case 4: {
     auto *fn = ((value(*)(Context&, value, value, value, value, value))prim[p]);
-    result = fn(ctx, A, stack[0], stack[1], stack[2], stack[3]);
+    A = fn(ctx, A, stack[0], stack[1], stack[2], stack[3]);
     break;
   }
   default:
     throw std::runtime_error("CCall not implemented");
   }
 
-  stack.pop_back();
-  for (uint32_t i = 1; i < n; ++i) {
-    stack.pop_back();
-  }
-
-  stack.push_back(result);
+  env = stack.pop();
+  stack.pop_n(n - 1);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runLSRINT() {
   std::cout << "LSRINT" << std::endl;
-  int64_t i = stack.rbegin()->getInt64();
+  int64_t i = val_to_int64(stack.pop());
   A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) >> i);
-  stack.pop_back();
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runOFFSETINT(int32_t ofs) {
   std::cout << "OFFSETINT " << ofs << std::endl;
   A = ctx.allocInt64(A.getInt64() + ofs);
 }
 
+// -----------------------------------------------------------------------------
 void Interpreter::runGTINT() {
   std::cout << "GTINT" << std::endl;
-  if (A.getInt64() > stack.rbegin()->getInt64()) {
+  if (A.getInt64() > stack.pop()) {
     A = kTrue;
   } else {
     A = kFalse;
   }
-  stack.pop_back();
 }

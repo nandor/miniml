@@ -20,6 +20,7 @@ class Heap;
 
 /// Well-known tags.
 static const uint8_t kClosureTag     = 247;
+static const uint8_t kObjectTag      = 248;
 static const uint8_t kInfixTag       = 249;
 static const uint8_t kStringTag      = 252;
 static const uint8_t kDoubleTag      = 253;
@@ -165,7 +166,7 @@ class Value final {
 
   /// Decodes the value.
   inline int64_t getInt64() const {
-    return val_int64(value_);
+    return val_to_int64(value_);
   }
   inline double getDouble() const {
     assert(tag() == kDoubleTag && "Value is not a double.");
