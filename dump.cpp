@@ -6,15 +6,15 @@
 #include <memory>
 
 #include "miniml/Context.h"
-#include "miniml/Value.h"
 #include "miniml/BytecodeFile.h"
+#include "miniml/Value.h"
+#include "minirt/Runtime.h"
 using namespace miniml;
 
 
 
 // -----------------------------------------------------------------------------
-static void dumpData(Section *section) {
-  Context ctx;
+static void dumpData(Context &ctx, Section *section) {
   MemoryStreamReader stream(section->getData(), section->getSize());
   printValue(ctx, getValue(ctx, stream), std::cout);
 }
@@ -22,7 +22,7 @@ static void dumpData(Section *section) {
 
 
 // -----------------------------------------------------------------------------
-static void dumpStrings(Section *section) {
+static void dumpStrings(Context &ctx, Section *section) {
   MemoryStreamReader stream(section->getData(), section->getSize());
   while (!stream.eof()) {
     std::cout << "  " << stream.getString() << std::endl;
@@ -37,6 +37,11 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  Context ctx;
+  ctx.registerOperations(&int32_ops);
+  ctx.registerOperations(&int64_ops);
+  ctx.registerOperations(&nativeint_ops);
+
   try {
     for (int i = 1; i < argc; ++i) {
       BytecodeFile file(argv[i]);
@@ -50,11 +55,11 @@ int main(int argc, char **argv) {
           // TODO: code.
           break;
         case PRIM: case DLLS: case DLPT:
-          dumpStrings(section);
+          dumpStrings(ctx, section);
           break;
         case DATA:
         case CRCS:
-          dumpData(section);
+          dumpData(ctx, section);
           break;
         case DBUG: case SYMB:
           break;

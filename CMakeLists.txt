@@ -8,7 +8,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 ADD_DEFINITIONS(-std=gnu++1y -g)
 
 # miniml
-ADD_LIBRARY(miniml
+ADD_LIBRARY(miniml STATIC
   miniml/BytecodeFile.cpp
   miniml/Context.cpp
   miniml/Heap.cpp
@@ -17,19 +17,31 @@ ADD_LIBRARY(miniml
   miniml/Value.cpp
 )
 
+# runtime
+ADD_LIBRARY(minirt SHARED
+  minirt/Ints.cpp
+  minirt/IO.cpp
+  minirt/Object.cpp
+  minirt/String.cpp
+)
+TARGET_LINK_LIBRARIES(minirt
+  miniml
+)
+
 # mldump
 ADD_EXECUTABLE(mldump
   dump.cpp
 )
 TARGET_LINK_LIBRARIES(mldump
   miniml
+  minirt
 )
 
 # interp
 ADD_EXECUTABLE(mlinterp
   interp.cpp
-  miniml/Runtime.cpp
 )
 TARGET_LINK_LIBRARIES(mlinterp
   miniml
+  minirt
 )

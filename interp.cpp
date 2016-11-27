@@ -7,8 +7,9 @@
 #include <iomanip>
 
 #include "miniml/Context.h"
-#include "miniml/Value.h"
 #include "miniml/BytecodeFile.h"
+#include "miniml/Value.h"
+#include "minirt/Runtime.h"
 using namespace miniml;
 
 
@@ -20,8 +21,13 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+
   try {
     Context ctx;
+    ctx.registerOperations(&int32_ops);
+    ctx.registerOperations(&int64_ops);
+    ctx.registerOperations(&nativeint_ops);
+
     for (int i = 1; i < argc; ++i) {
       BytecodeFile file(argv[i]);
       ctx.run(file);
