@@ -171,12 +171,17 @@ void miniml::printValue(Context &ctx, Value val, std::ostream &os) {
     }
     if (val.isCustom()) {
       auto ops = val.getOps();
-      printf("%p\n", ops);
+      os << "<custom:";
       if (ops->print) {
         ops->print(ctx, os);
-      } else {
-        os << "<custom>";
       }
+      os << ">";
+      return;
+    }
+    if (val.isClosure()) {
+      os << "<closure:";
+      os << static_cast<value>(val.getField(0));
+      os << ">";
       return;
     }
     if (val.isBlock()) {

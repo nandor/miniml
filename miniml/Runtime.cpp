@@ -43,7 +43,6 @@ extern "C" value caml_int64_float_of_bits(
 
 
 
-// -----------------------------------------------------------------------------
 extern "C" value caml_ml_open_descriptor_in(
     Context &ctx,
     value fd)
@@ -56,7 +55,6 @@ extern "C" value caml_ml_open_descriptor_in(
 
 
 
-// -----------------------------------------------------------------------------
 extern "C" value caml_ml_open_descriptor_out(
     Context &ctx,
     value fd)
@@ -69,7 +67,6 @@ extern "C" value caml_ml_open_descriptor_out(
 
 
 
-// -----------------------------------------------------------------------------
 extern "C" value caml_register_named_value(
     Context &ctx,
     value vname,
@@ -82,12 +79,24 @@ extern "C" value caml_register_named_value(
 
 
 // -----------------------------------------------------------------------------
+static int64_t oo_last_id = 0ll;
+
+
 extern "C" value caml_set_oo_id(
     Context &ctx,
     value obj)
 {
-  static int64_t oo_last_id = 0ll;
   val_field(obj, 1) = val_int64(oo_last_id);
   oo_last_id += 1;
   return obj;
+}
+
+
+extern "C" value caml_fresh_oo_id(
+    Context &ctx,
+    value v)
+{
+  value val = val_int64(oo_last_id);
+  oo_last_id += 1;
+  return val;
 }

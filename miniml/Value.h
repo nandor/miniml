@@ -91,7 +91,11 @@ inline CustomOperations *val_ops(value val) {
   assert(val_tag(val) == kCustomTag && "Value is not custom.");
   return reinterpret_cast<CustomOperations*>(val_field(val, 0));
 }
-
+/// Returns the code value of a closure.
+inline uint64_t val_code(value val) {
+  assert(val_tag(val) == kClosureTag && "Value is not a closure.");
+  return reinterpret_cast<uint64_t>(val_field(val, 0));
+}
 
 
 
@@ -139,6 +143,8 @@ class Value final {
     return !(value_ & 1);
   }
   /// Checks if the value is a specific object.
+  inline bool isClosure() const { return tag() == kClosureTag; }
+  inline bool isObject() const { return tag() == kObjectTag; }
   inline bool isDouble() const { return tag() == kDoubleTag; }
   inline bool isString() const { return tag() == kStringTag; }
   inline bool isCustom() const { return tag() == kCustomTag; }
@@ -178,6 +184,9 @@ class Value final {
   }
   inline const CustomOperations *getOps() const {
     return val_ops(value_);
+  }
+  inline uint64_t getCode() const {
+    return val_code(value_);
   }
 
   /// Returns the length of a string.

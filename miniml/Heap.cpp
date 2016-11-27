@@ -17,7 +17,6 @@ value Heap::allocInt64(int64_t i) {
 value Heap::allocDouble(double v) {
   value b = allocBlock(1, kDoubleTag);
   *reinterpret_cast<double*>(reinterpret_cast<value *>(b) + 1) = v;
-  printf("D: %p\n", reinterpret_cast<void*>(b));
   return b;
 }
 

@@ -60,8 +60,14 @@ class Interpreter {
   void runASSIGN();
   void runENVACC();
   void runGETFIELD(uint32_t n);
+  void runENVACC(uint32_t n);
+  void runPUSHENVACC(uint32_t n);
   void runPUSH_RETADDR();
   void runAPPLY(uint32_t args);
+  void runAPPLY1();
+  void runAPPLY2();
+  void runAPPLY3();
+  void runAPPTERM2();
   void runRESTART();
   void runGRAB();
   void runCLOSURE();
