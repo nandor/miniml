@@ -16,11 +16,11 @@ value Heap::allocInt64(int64_t i) {
 
 value Heap::allocDouble(double v) {
   value b = allocBlock(1, kDoubleTag);
-  *reinterpret_cast<double*>(reinterpret_cast<value *>(b) + 1) = v;
+  *reinterpret_cast<double*>(val_ptr(b)) = v;
   return b;
 }
 
-value Heap::allocString(const char *str, size_t length) {
+value Heap::allocBytes(size_t length) {
   // The length of all blocks must be a multiple of the word size, i.e. 8 bytes.
   // Thus, the memory allocated to strings must be a multiple of the word size.
   // The string is padded by a number of bytes and the last byte represents the
@@ -33,12 +33,16 @@ value Heap::allocString(const char *str, size_t length) {
   const size_t size = (length + sizeof(value)) / sizeof(value);
   const size_t blkSize = size * sizeof(value);
   value b = allocBlock(size, kStringTag);
-  char *ptr = reinterpret_cast<char *>(reinterpret_cast<value *>(b) + 1);
-  memcpy(ptr, str, length);
-  for (size_t i = length; i < blkSize - 1; ++i) {
-    ptr[i] = 0;
-  }
+  char *ptr = reinterpret_cast<char *>(val_ptr(b));
+  memset(ptr, 0, blkSize);
   ptr[blkSize - 1] = blkSize - length - 1;
+  return b;
+}
+
+value Heap::allocString(const char *str, size_t length) {
+  value b = allocBytes(length);
+  char *ptr = reinterpret_cast<char *>(val_ptr(b));
+  memcpy(ptr, str, length);
   return b;
 }
 
@@ -52,7 +56,7 @@ value Heap::allocBlock(size_t n, uint8_t tag) {
   for (size_t i = 0; i < n; ++i) {
     *(reinterpret_cast<value *>(block) + i + 1) = 1ull;
   }
-  return reinterpret_cast<value>(block);
+  return reinterpret_cast<value>(block) + sizeof(uint64_t);
 }
 
 value Heap::allocCustom(CustomOperations *op, size_t size) {

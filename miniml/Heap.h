@@ -15,6 +15,7 @@ class Heap {
   // Allocates values on the heap.
   value allocInt64(int64_t i);
   value allocDouble(double v);
+  value allocBytes(size_t length);
   value allocString(const char *str, size_t length);
   value allocBlock(size_t n, uint8_t tag);
   value allocCustom(CustomOperations *ops, size_t size);

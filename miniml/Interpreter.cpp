@@ -113,11 +113,10 @@ Value Interpreter::run() {
     case  59: runATOM(code[PC++]);              break;
     case  60: runPUSHATOM(0);                   break;
     case  61: runPUSHATOM(code[PC++]);          break;
-
-    case  62: runMAKEBLOCK(code[PC++]); break;
-    case  63: runMAKEBLOCK(1); break;
-    case  64: runMAKEBLOCK(2); break;
-    case  65: runMAKEBLOCK(3); break;
+    case  62: runMAKEBLOCK(code[PC++]);         break;
+    case  63: runMAKEBLOCK(1);                  break;
+    case  64: runMAKEBLOCK(2);                  break;
+    case  65: runMAKEBLOCK(3);                  break;
 
     case  67: runGETFIELD(0); break;
     case  68: runGETFIELD(1); break;
@@ -266,7 +265,6 @@ void Interpreter::runAPPLY2() {
   env = A;
   extraArgs = 1;
 }
-
 
 // -----------------------------------------------------------------------------
 void Interpreter::runAPPLY3() {

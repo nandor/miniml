@@ -18,3 +18,11 @@ extern "C" value caml_ml_string_length(
   const size_t blkSize = val_size(s) * sizeof(value);
   return val_int64(blkSize - data[blkSize - 1] - 1);
 }
+
+
+extern "C" value caml_create_bytes(
+    Context &ctx,
+    value length)
+{
+  return ctx.allocBytes(val_to_int64(length));
+}

@@ -32,6 +32,10 @@ value Context::allocDouble(double v) {
   return heap_.allocDouble(v);
 }
 
+value Context::allocBytes(size_t length) {
+  return heap_.allocBytes(length);
+}
+
 value Context::allocString(const char *str, size_t length) {
   return heap_.allocString(str, length);
 }

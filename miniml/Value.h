@@ -53,9 +53,9 @@ inline value val_int64(int64_t val) {
   return (val << 1ll) + 1ll;
 }
 /// Returns the block header.
-inline uint64_t val_header(value val) {
+inline uint64_t &val_header(value val) {
   assert((val & 1) == 0 && "Value is not a block.");
-  return *(reinterpret_cast<const uint64_t *>(val));
+  return *(reinterpret_cast<uint64_t *>(val) - 1);
 }
 /// Return the block tag.
 inline uint8_t val_tag(value val) {
@@ -68,7 +68,7 @@ inline uint64_t val_size(value val) {
 /// Returns a pointer to the first field.
 inline value *val_ptr(value val) {
   assert((val & 1) == 0 && "Value is not a block.");
-  return reinterpret_cast<value *>(val) + 1;
+  return reinterpret_cast<value *>(val);
 }
 /// Returns a pointer to a field.
 inline value &val_field(value val, size_t n) {
