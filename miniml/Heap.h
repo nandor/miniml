@@ -21,14 +21,28 @@ class Heap {
   value allocCustom(CustomOperations *ops, size_t size);
 
  private:
-  // Heap node.
-  struct Node {
-    Node *next;
-    void *mem;
+  /// Start address of the minor heap.
+  uint8_t *minorStart;
+  /// Last allocated block in the minor heap.
+  uint8_t *minorCurrent;
+
+  /// Size of the minor heap.
+  size_t minoHeapSize;
+  /// Size of a major node.
+  size_t majorNodeSize;
+
+  // Major heap node.
+  struct Major {
+    /// Next major node.
+    Major *next;
+    /// Start address of a major node.
+    uint8_t *start;
+    /// Current pointer in the major node.
+    uint8_t *current;
   };
 
   // First heap node.
-  Node *first;
+  Major *first;
 };
 
 }

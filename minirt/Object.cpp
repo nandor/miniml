@@ -22,7 +22,6 @@ extern "C" value caml_set_oo_id(
   return obj;
 }
 
-
 extern "C" value caml_fresh_oo_id(
     Context &ctx,
     value v)
