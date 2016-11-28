@@ -41,6 +41,7 @@ Interpreter::Interpreter(
   , A(1ull)
   , global(global)
   , prim(prim)
+  , extraArgs(0)
 {
   for (size_t i = 0; i < 256; ++i) {
     atom[i] = ctx.allocBlock(0, i);
@@ -176,7 +177,7 @@ Value Interpreter::run() {
     case 118: throw std::runtime_error("118");  break;
     case 119: runLSRINT();                      break;
     case 120: throw std::runtime_error("120");  break;
-    case 121: throw std::runtime_error("121");  break;
+    case 121: runEQ();                          break;
     case 122: runNEQ();                         break;
     case 123: throw std::runtime_error("123");  break;
     case 124: throw std::runtime_error("124");  break;
@@ -202,6 +203,7 @@ Value Interpreter::run() {
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
+    std::cerr << stack.getSP() << std::endl;
   }
 }
 
@@ -535,14 +537,13 @@ void Interpreter::runPUSHTRAP(int32_t ofs) {
   stack.push(env);
   stack.push(val_int64(trapSP));
   stack.push(val_int64(PC + ofs - 1));
-  trapSP = stack.sp();
+  trapSP = stack.getSP();
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runPOPTRAP() {
-  stack.pop();
-  trapSP = val_to_int64(stack.pop());
-  stack.pop_n(2);
+  trapSP = val_to_int64(stack[1]);
+  stack.pop_n(4);
 }
 
 // -----------------------------------------------------------------------------
@@ -650,8 +651,17 @@ void Interpreter::runOFFSETINT(int32_t ofs) {
 }
 
 // -----------------------------------------------------------------------------
+void Interpreter::runEQ() {
+  if (A == stack.pop()) {
+    A = kTrue;
+  } else {
+    A = kFalse;
+  }
+}
+
+// -----------------------------------------------------------------------------
 void Interpreter::runNEQ() {
-  if (A.getInt64() != val_to_int64(stack.pop())) {
+  if (A != stack.pop()) {
     A = kTrue;
   } else {
     A = kFalse;
@@ -692,5 +702,13 @@ void Interpreter::runRETURN(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runRAISE() {
-  throw std::runtime_error("RAISE");
+  std::cerr << "RAISE" << std::endl;
+  if (trapSP == 0) {
+    std::runtime_error("No exception handler.");
+  }
+  stack.setSP(trapSP);
+  PC = val_to_int64(stack.pop());
+  trapSP = val_to_int64(stack.pop());
+  env = stack.pop();
+  extraArgs = val_to_int64(stack.pop());
 }

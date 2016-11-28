@@ -25,8 +25,12 @@ class Stack {
     return *(stack_.rbegin() + n);
   }
   /// Returns the stack pointer value.
-  unsigned sp() const {
+  unsigned getSP() const {
     return stack_.size();
+  }
+  /// Sets the stack pointer value.
+  void setSP(unsigned sp) {
+    stack_.erase(stack_.begin() + sp, stack_.end());
   }
 
  private:
@@ -109,6 +113,7 @@ class Interpreter {
   void runLSRINT();
   void runOFFSETINT(int32_t ofs);
   void runGTINT();
+  void runEQ();
   void runNEQ();
   void runBNEQ();
   void runRETURN(uint32_t n);
