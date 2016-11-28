@@ -26,26 +26,17 @@ let m = 1000;;
 
 let ar = Array.make l "";;
 
-Random.init 1234;;
-
-let compact_flag = ref false;;
-
 let main () =
   while true do
     for i = 1 to 100000 do
-      ar.(Random.int l) <- String.create (Random.int m);
+      print_endline (string_of_int i);
+      ar.(i mod l) <- String.create i;
     done;
-    if !compact_flag then Gc.compact () else Gc.full_major ();
+    Gc.full_major ();
     print_newline ();
     Gc.print_stat stdout;
     flush stdout;
   done
 ;;
-
-let argspecs = [
-  "-c", Arg.Set compact_flag, "do heap compactions";
-];;
-
-Arg.parse argspecs (fun _ -> ()) "Usage: alloc [-c]";;
 
 main ();;

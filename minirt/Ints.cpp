@@ -36,7 +36,21 @@ value nativeint_deserialize(Context &ctx, StreamReader &stream) {
   }
 }
 
+extern "C" value caml_nativeint_shift_left(
+    Context &ctx,
+    value v1,
+    value v2)
+{
+  return val_int64(val_to_int64(v1) << val_to_int64(v2));
+}
 
+extern "C" value caml_nativeint_sub(
+    Context &ctx,
+    value v1,
+    value v2)
+{
+  return val_int64(val_to_int64(v1) - val_to_int64(v2));
+}
 
 // -----------------------------------------------------------------------------
 // Numeric stuff

@@ -52,6 +52,9 @@ value Heap::allocBlock(size_t n, uint8_t tag) {
   }
 
   void *block = malloc(n * sizeof(value) + sizeof(value));
+  if (block == nullptr) {
+    throw std::runtime_error("Allocation failed.");
+  }
   *reinterpret_cast<uint64_t *>(block) = (n << 10) | tag;
   for (size_t i = 0; i < n; ++i) {
     *(reinterpret_cast<value *>(block) + i + 1) = 1ull;

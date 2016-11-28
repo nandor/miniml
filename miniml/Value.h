@@ -22,6 +22,7 @@ class Heap;
 static const uint8_t kClosureTag     = 247;
 static const uint8_t kObjectTag      = 248;
 static const uint8_t kInfixTag       = 249;
+static const uint8_t kNoScanTag      = 251;
 static const uint8_t kStringTag      = 252;
 static const uint8_t kDoubleTag      = 253;
 static const uint8_t kDoubleArrayTag = 254;
@@ -51,6 +52,10 @@ struct CustomOperations {
 /// Creates a value from an int64.
 inline value val_int64(int64_t val) {
   return (val << 1ll) + 1ll;
+}
+/// Checks if a value is an integer.
+inline bool val_is_int64(value val) {
+  return val & 0x1;
 }
 /// Returns the block header.
 inline uint64_t &val_header(value val) {
@@ -102,9 +107,9 @@ inline double val_to_double(value val) {
   return *reinterpret_cast<double *>(val_ptr(val));
 }
 /// Extracts the string value.
-inline const char *val_to_string(value val) {
+inline char *val_to_string(value val) {
   assert(val_tag(val) == kStringTag && "Value is not a string.");
-  return reinterpret_cast<const char *>(val_ptr(val));
+  return reinterpret_cast<char *>(val_ptr(val));
 }
 
 

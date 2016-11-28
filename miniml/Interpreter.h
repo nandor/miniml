@@ -62,6 +62,7 @@ class Interpreter {
   void runGETFIELD(uint32_t n);
   void runGETFLOATFIELD(uint32_t n);
   void runSETFIELD(uint32_t n);
+  void runVECTLENGTH();
   void runENVACC(uint32_t n);
   void runPUSHENVACC(uint32_t n);
   void runPUSH_RETADDR();
@@ -101,10 +102,15 @@ class Interpreter {
   void runCONST(int32_t n);
   void runPUSHCONST(int32_t n);
   void runCCALL(uint32_t n);
+  void runADDINT();
+  void runMULINT();
+  void runDIVINT();
+  void runMODINT();
   void runLSRINT();
   void runOFFSETINT(int32_t ofs);
   void runGTINT();
   void runNEQ();
+  void runBNEQ();
   void runRETURN(uint32_t n);
   void runSTOP();
   void runRAISE();

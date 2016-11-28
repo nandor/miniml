@@ -31,3 +31,24 @@ extern "C" value caml_fresh_oo_id(
   oo_last_id += 1;
   return val;
 }
+
+extern "C" value caml_obj_dup(
+    Context &ctx,
+    value arg)
+{
+  size_t size = val_size(arg);
+  if (size == 0) {
+    return arg;
+  }
+
+  uint8_t tag = val_tag(arg);
+  value ret = ctx.allocBlock(size, tag);
+  if (tag >= kNoScanTag) {
+    memcpy(val_ptr(ret), val_ptr(arg), size * sizeof(value));
+  } else {
+    for (uint32_t i = 0; i < size; ++i) {
+      val_field(ret, i) = val_field(arg, i);
+    }
+  }
+  return ret;
+}

@@ -26,3 +26,17 @@ extern "C" value caml_create_bytes(
 {
   return ctx.allocBytes(val_to_int64(length));
 }
+
+extern "C" value caml_blit_string(
+    Context &ctx,
+    value s1,
+    value ofs1,
+    value s2,
+    value ofs2,
+    value n)
+{
+  auto *ptr1 = val_to_string(s1) + val_to_int64(ofs1);
+  auto *ptr2 = val_to_string(s2) + val_to_int64(ofs2);
+  memmove(ptr2, ptr1, val_to_int64(n));
+  return kUnit;
+}

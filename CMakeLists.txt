@@ -19,6 +19,9 @@ ADD_LIBRARY(miniml STATIC
 
 # runtime
 ADD_LIBRARY(minirt SHARED
+  minirt/Array.cpp
+  minirt/Compare.cpp
+  minirt/GC.cpp
   minirt/Ints.cpp
   minirt/IO.cpp
   minirt/Object.cpp

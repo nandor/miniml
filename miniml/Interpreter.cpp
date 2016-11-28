@@ -134,7 +134,7 @@ Value Interpreter::run() {
     case  76: runSETFIELD(3);                   break;
     case  77: runSETFIELD(code[PC++]);          break;
     case  78: throw std::runtime_error("78");   break;
-    case  79: throw std::runtime_error("79");   break;
+    case  79: runVECTLENGTH();                  break;
     case  80: throw std::runtime_error("80");   break;
     case  81: throw std::runtime_error("81");   break;
     case  82: throw std::runtime_error("82");   break;
@@ -165,11 +165,11 @@ Value Interpreter::run() {
     case 107: runPUSHCONST(3);                  break;
     case 108: runPUSHCONST(code[PC++]);         break;
     case 109: throw std::runtime_error("109");  break;
-    case 110: throw std::runtime_error("110");  break;
+    case 110: runADDINT();                      break;
     case 111: throw std::runtime_error("111");  break;
-    case 112: throw std::runtime_error("112");  break;
-    case 113: throw std::runtime_error("113");  break;
-    case 114: throw std::runtime_error("114");  break;
+    case 112: runMULINT();                      break;
+    case 113: runDIVINT();                      break;
+    case 114: runMODINT();                      break;
     case 115: throw std::runtime_error("115");  break;
     case 116: throw std::runtime_error("116");  break;
     case 117: throw std::runtime_error("117");  break;
@@ -187,7 +187,7 @@ Value Interpreter::run() {
     case 129: throw std::runtime_error("129");  break;
     case 130: throw std::runtime_error("130");  break;
     case 131: throw std::runtime_error("131");  break;
-    case 132: throw std::runtime_error("132");  break;
+    case 132: runBNEQ();                        break;
     case 133: throw std::runtime_error("133");  break;
     case 134: throw std::runtime_error("134");  break;
     case 135: throw std::runtime_error("135");  break;
@@ -202,7 +202,6 @@ Value Interpreter::run() {
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
-    std::cerr << stack.sp() << std::endl;
   }
 }
 
@@ -255,6 +254,11 @@ void Interpreter::runGETFLOATFIELD(uint32_t n) {
 void Interpreter::runSETFIELD(uint32_t n) {
   std::cerr << "SETFIELD" << std::endl;
   throw std::runtime_error("SETFIELD");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runVECTLENGTH() {
+  A = val_int64(val_size(A));
 }
 
 // -----------------------------------------------------------------------------
@@ -401,7 +405,7 @@ void Interpreter::runCLOSUREREC() {
   stack.pop_n(v);
   A.setCode(PC + static_cast<int32_t>(code[PC]));
   stack.push(A);
-  for (uint32_t i = 1; i < f; ++i) {
+  for (uint32_t i = 0; i + 1< f; ++i) {
     Value header((i * 2) << 10 | kInfixTag);
     A.setField(1 + i * 2, header);
     Value ofs(PC + code[PC + i]);
@@ -469,14 +473,11 @@ void Interpreter::runSETGLOBAL(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runATOM(uint32_t n) {
-  std::cerr << "ATOM" << std::endl;
   A = atom[n];
-
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runPUSHATOM(uint32_t n) {
-  std::cerr << "PUSHATOM" << std::endl;
   stack.push(A);
   A = atom[n];
 }
@@ -546,7 +547,7 @@ void Interpreter::runPOPTRAP() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runCHECK_SIGNALS() {
-  std::cerr << "CHECK_SIGNALS" << std::endl;
+  //std::cerr << "CHECK_SIGNALS" << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -563,33 +564,36 @@ void Interpreter::runPUSHCONST(int32_t n) {
 // -----------------------------------------------------------------------------
 void Interpreter::runCCALL(uint32_t n) {
   uint32_t p = code[PC++];
-  std::cerr << "CCALL " << n << " " << p << std::endl;
+  auto *ptr = prim[p];
+  if (ptr == nullptr) {
+    throw std::runtime_error("Undefined prim " + std::to_string(p));
+  }
 
   stack.push(env);
 
   switch (n) {
-  case 0: {
-    auto *fn = ((value(*)(Context&, value))prim[p]);
+  case 1: {
+    auto *fn = ((value(*)(Context&, value))ptr);
     A = fn(ctx, A);
     break;
   }
-  case 1: {
-    auto *fn = ((value(*)(Context&, value, value))prim[p]);
+  case 2: {
+    auto *fn = ((value(*)(Context&, value, value))ptr);
     A = fn(ctx, A, stack[1]);
     break;
   }
-  case 2: {
-    auto *fn = ((value(*)(Context&, value, value, value))prim[p]);
+  case 3: {
+    auto *fn = ((value(*)(Context&, value, value, value))ptr);
     A = fn(ctx, A, stack[1], stack[2]);
     break;
   }
-  case 3: {
-    auto *fn = ((value(*)(Context&, value, value, value, value))prim[p]);
+  case 4: {
+    auto *fn = ((value(*)(Context&, value, value, value, value))ptr);
     A = fn(ctx, A, stack[1], stack[2], stack[3]);
     break;
   }
-  case 4: {
-    auto *fn = ((value(*)(Context&, value, value, value, value, value))prim[p]);
+  case 5: {
+    auto *fn = ((value(*)(Context&, value, value, value, value, value))ptr);
     A = fn(ctx, A, stack[1], stack[2], stack[3], stack[4]);
     break;
   }
@@ -602,8 +606,40 @@ void Interpreter::runCCALL(uint32_t n) {
 }
 
 // -----------------------------------------------------------------------------
+void Interpreter::runMULINT() {
+  int64_t i = val_to_int64(stack.pop());
+  A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) * i);
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runADDINT() {
+  int64_t i = val_to_int64(stack.pop());
+  A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) + i);
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runDIVINT() {
+  int64_t i = val_to_int64(stack.pop());
+  if (i == 0) {
+    throw std::runtime_error("Division by zero.");
+  } else {
+    A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) / i);
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runMODINT() {
+  int64_t i = val_to_int64(stack.pop());
+  if (i == 0) {
+    throw std::runtime_error("Division by zero.");
+  } else {
+    A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) % i);
+  }
+}
+
+
+// -----------------------------------------------------------------------------
 void Interpreter::runLSRINT() {
-  std::cerr << "LSRINT" << std::endl;
   int64_t i = val_to_int64(stack.pop());
   A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) >> i);
 }
@@ -619,6 +655,15 @@ void Interpreter::runNEQ() {
     A = kTrue;
   } else {
     A = kFalse;
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBNEQ() {
+  auto v = static_cast<uint32_t>(code[PC++]);
+  auto ofs = static_cast<int32_t>(code[PC++]);
+  if (v != A.getInt64()) {
+    PC += ofs - 1;
   }
 }
 

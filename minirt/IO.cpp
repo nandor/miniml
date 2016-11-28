@@ -100,6 +100,7 @@ extern "C" value caml_ml_flush(
     Context &ctx,
     value vchannel)
 {
+  fsync(val_to_custom<channel>(vchannel)->fd);
   return kUnit;
 }
 
