@@ -28,13 +28,11 @@ let ar = Array.make l "";;
 
 let main () =
   while true do
-    for i = 1 to 100000 do
+    for i = 1 to 10 do
       print_endline (string_of_int i);
       ar.(i mod l) <- String.create i;
     done;
     Gc.full_major ();
-    print_newline ();
-    Gc.print_stat stdout;
     flush stdout;
   done
 ;;
