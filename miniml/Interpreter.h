@@ -66,7 +66,12 @@ class Interpreter {
   void runGETFIELD(uint32_t n);
   void runGETFLOATFIELD(uint32_t n);
   void runSETFIELD(uint32_t n);
+  void runSETFLOATFIELD(uint32_t n);
   void runVECTLENGTH();
+  void runGETVECTITEM();
+  void runSETVECTITEM();
+  void runGETSTRINGCHAR();
+  void runSETSTRINGCHAR();
   void runENVACC(uint32_t n);
   void runPUSHENVACC(uint32_t n);
   void runPUSH_RETADDR();
@@ -106,19 +111,45 @@ class Interpreter {
   void runCONST(int32_t n);
   void runPUSHCONST(int32_t n);
   void runCCALL(uint32_t n);
+  void runNEGINT();
   void runADDINT();
+  void runSUBINT();
   void runMULINT();
   void runDIVINT();
   void runMODINT();
+  void runANDINT();
+  void runORINT();
+  void runXORINT();
+  void runLSLINT();
   void runLSRINT();
+  void runASRINT();
   void runOFFSETINT(int32_t ofs);
+  void runOFFSETREF();
+  void runISINT();
+  void runGETMETHOD();
+  void runBEQ();
   void runGTINT();
   void runEQ();
   void runNEQ();
+  void runLTINT();
+  void runLEINT();
+  void runGEINT();
   void runBNEQ();
   void runRETURN(uint32_t n);
   void runSTOP();
   void runRAISE();
+  void runBLTINT();
+  void runBLEINT();
+  void runBGTINT();
+  void runBGEINT();
+  void runULTINT();
+  void runUGEINT();
+  void runBULTINT();
+  void runBUGEINT();
+  void runGETPUBMET();
+  void runGETDYNMET();
+  void runEVENT();
+  void runBREAK();
 
  private:
   /// Reference to the context.

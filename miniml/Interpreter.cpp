@@ -54,8 +54,7 @@ Interpreter::~Interpreter() {
 Value Interpreter::run() {
   PC = 0;
   for (;;) {
-    auto op = code[PC++];
-    switch (op) {
+    switch (auto op = code[PC++]) {
     case   0: runACC(0);                        break;
     case   1: runACC(1);                        break;
     case   2: runACC(2);                        break;
@@ -134,12 +133,12 @@ Value Interpreter::run() {
     case  75: runSETFIELD(2);                   break;
     case  76: runSETFIELD(3);                   break;
     case  77: runSETFIELD(code[PC++]);          break;
-    case  78: throw std::runtime_error("78");   break;
+    case  78: runSETFLOATFIELD(code[PC++]);     break;
     case  79: runVECTLENGTH();                  break;
-    case  80: throw std::runtime_error("80");   break;
-    case  81: throw std::runtime_error("81");   break;
-    case  82: throw std::runtime_error("82");   break;
-    case  83: throw std::runtime_error("83");   break;
+    case  80: runGETVECTITEM();                 break;
+    case  81: runSETVECTITEM();                 break;
+    case  82: runGETSTRINGCHAR();               break;
+    case  83: runSETSTRINGCHAR();               break;
     case  84: runBRANCH(code[PC++]);            break;
     case  85: runBRANCHIF(code[PC++]);          break;
     case  86: runBRANCHIFNOT(code[PC++]);       break;
@@ -165,41 +164,43 @@ Value Interpreter::run() {
     case 106: runPUSHCONST(2);                  break;
     case 107: runPUSHCONST(3);                  break;
     case 108: runPUSHCONST(code[PC++]);         break;
-    case 109: throw std::runtime_error("109");  break;
+    case 109: runNEGINT();                      break;
     case 110: runADDINT();                      break;
-    case 111: throw std::runtime_error("111");  break;
+    case 111: runSUBINT();                      break;
     case 112: runMULINT();                      break;
     case 113: runDIVINT();                      break;
     case 114: runMODINT();                      break;
-    case 115: throw std::runtime_error("115");  break;
-    case 116: throw std::runtime_error("116");  break;
-    case 117: throw std::runtime_error("117");  break;
-    case 118: throw std::runtime_error("118");  break;
+    case 115: runANDINT();                      break;
+    case 116: runORINT();                       break;
+    case 117: runXORINT();                      break;
+    case 118: runLSLINT();                      break;
     case 119: runLSRINT();                      break;
-    case 120: throw std::runtime_error("120");  break;
+    case 120: runASRINT();                      break;
     case 121: runEQ();                          break;
     case 122: runNEQ();                         break;
-    case 123: throw std::runtime_error("123");  break;
-    case 124: throw std::runtime_error("124");  break;
+    case 123: runLTINT();                       break;
+    case 124: runLEINT();                       break;
     case 125: runGTINT();                       break;
-    case 126: throw std::runtime_error("126");  break;
+    case 126: runGEINT();                       break;
     case 127: runOFFSETINT(code[PC++]);         break;
-    case 128: throw std::runtime_error("128");  break;
-    case 129: throw std::runtime_error("129");  break;
-    case 130: throw std::runtime_error("130");  break;
-    case 131: throw std::runtime_error("131");  break;
+    case 128: runOFFSETREF();                   break;
+    case 129: runISINT();                       break;
+    case 130: runGETMETHOD();                   break;
+    case 131: runBEQ();                         break;
     case 132: runBNEQ();                        break;
-    case 133: throw std::runtime_error("133");  break;
-    case 134: throw std::runtime_error("134");  break;
-    case 135: throw std::runtime_error("135");  break;
-    case 136: throw std::runtime_error("136");  break;
-    case 137: throw std::runtime_error("137");  break;
-    case 138: throw std::runtime_error("138");  break;
-    case 139: throw std::runtime_error("139");  break;
-    case 140: throw std::runtime_error("140");  break;
-    case 141: throw std::runtime_error("141");  break;
-    case 142: throw std::runtime_error("142");  break;
+    case 133: runBLTINT();                      break;
+    case 134: runBLEINT();                      break;
+    case 135: runBGTINT();                      break;
+    case 136: runBGEINT();                      break;
+    case 137: runULTINT();                      break;
+    case 138: runUGEINT();                      break;
+    case 139: runBULTINT();                     break;
+    case 140: runBUGEINT();                     break;
+    case 141: runGETPUBMET();                   break;
+    case 142: runGETDYNMET();                   break;
     case 143: return A;
+    case 144: runEVENT();                       break;
+    case 145: runBREAK();                       break;
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
@@ -259,9 +260,35 @@ void Interpreter::runSETFIELD(uint32_t n) {
 }
 
 // -----------------------------------------------------------------------------
+void Interpreter::runSETFLOATFIELD(uint32_t n) {
+  throw std::runtime_error("SETFLOATFIELD");
+}
+
+// -----------------------------------------------------------------------------
 void Interpreter::runVECTLENGTH() {
   A = val_int64(val_size(A));
 }
+
+// -----------------------------------------------------------------------------
+void Interpreter::runGETVECTITEM() {
+  throw std::runtime_error("GETVECTITEM");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runSETVECTITEM() {
+  throw std::runtime_error("SETVECTITEM");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runGETSTRINGCHAR() {
+  throw std::runtime_error("GETSTRINGCHAR");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runSETSTRINGCHAR() {
+  throw std::runtime_error("SETSTRINGCHAR");
+}
+
 
 // -----------------------------------------------------------------------------
 void Interpreter::runENVACC(uint32_t n) {
@@ -613,9 +640,17 @@ void Interpreter::runMULINT() {
 }
 
 // -----------------------------------------------------------------------------
+void Interpreter::runNEGINT() {
+}
+
+// -----------------------------------------------------------------------------
 void Interpreter::runADDINT() {
   int64_t i = val_to_int64(stack.pop());
   A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) + i);
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runSUBINT() {
 }
 
 // -----------------------------------------------------------------------------
@@ -638,6 +673,25 @@ void Interpreter::runMODINT() {
   }
 }
 
+// -----------------------------------------------------------------------------
+void Interpreter::runANDINT() {
+  throw std::runtime_error("ANDINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runORINT() {
+  throw std::runtime_error("ORINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runXORINT() {
+  throw std::runtime_error("XORINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runLSLINT() {
+  throw std::runtime_error("LSLINT");
+}
 
 // -----------------------------------------------------------------------------
 void Interpreter::runLSRINT() {
@@ -648,6 +702,31 @@ void Interpreter::runLSRINT() {
 // -----------------------------------------------------------------------------
 void Interpreter::runOFFSETINT(int32_t ofs) {
   A = ctx.allocInt64(A.getInt64() + ofs);
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runOFFSETREF() {
+  throw std::runtime_error("OFFSETREF");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runISINT() {
+  throw std::runtime_error("ISINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runGETMETHOD() {
+  throw std::runtime_error("GETMETHOD");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBEQ() {
+  throw std::runtime_error("BEQ");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runASRINT() {
+  throw std::runtime_error("ASRINT");
 }
 
 // -----------------------------------------------------------------------------
@@ -669,12 +748,13 @@ void Interpreter::runNEQ() {
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runBNEQ() {
-  auto v = static_cast<uint32_t>(code[PC++]);
-  auto ofs = static_cast<int32_t>(code[PC++]);
-  if (v != A.getInt64()) {
-    PC += ofs - 1;
-  }
+void Interpreter::runLTINT() {
+  throw std::runtime_error("LTINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runLEINT() {
+  throw std::runtime_error("LEINT");
 }
 
 // -----------------------------------------------------------------------------
@@ -683,6 +763,20 @@ void Interpreter::runGTINT() {
     A = kTrue;
   } else {
     A = kFalse;
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runGEINT() {
+  throw std::runtime_error("GEINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBNEQ() {
+  auto v = static_cast<uint32_t>(code[PC++]);
+  auto ofs = static_cast<int32_t>(code[PC++]);
+  if (v != A.getInt64()) {
+    PC += ofs - 1;
   }
 }
 
@@ -702,7 +796,6 @@ void Interpreter::runRETURN(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runRAISE() {
-  std::cerr << "RAISE" << std::endl;
   if (trapSP == 0) {
     std::runtime_error("No exception handler.");
   }
@@ -711,4 +804,64 @@ void Interpreter::runRAISE() {
   trapSP = val_to_int64(stack.pop());
   env = stack.pop();
   extraArgs = val_to_int64(stack.pop());
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBLTINT() {
+  throw std::runtime_error("BLTINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBLEINT() {
+  throw std::runtime_error("BLEINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBGTINT() {
+  throw std::runtime_error("BGTINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBGEINT() {
+  throw std::runtime_error("BGEINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runULTINT() {
+  throw std::runtime_error("ULTINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runUGEINT() {
+  throw std::runtime_error("UGEINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBULTINT() {
+  throw std::runtime_error("BULTINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBUGEINT() {
+  throw std::runtime_error("BUGEINT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runGETPUBMET() {
+  throw std::runtime_error("GETPUBMET");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runGETDYNMET() {
+  throw std::runtime_error("GETDYNMET");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runEVENT() {
+  throw std::runtime_error("EVENT");
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBREAK() {
+  throw std::runtime_error("BREAK");
 }
