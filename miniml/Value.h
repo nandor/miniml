@@ -126,21 +126,26 @@ class Value final {
   Value(value value)
     : value_(value)
   {
+    link();
   }
 
   /// Copies a heap-allocated value.
   Value(const Value &value)
     : value_(value.value_)
   {
+    link();
   }
 
   /// Frees the local reference.
   ~Value() {
+    unlink();
   }
 
   /// Creates a copy of the reference.
   Value &operator=(const Value &value) {
+    unlink();
     value_ = value.value_;
+    link();
     return *this;
   }
 
@@ -226,9 +231,22 @@ class Value final {
     return val_field(value_, n);
   }
 
+  /// First node in the value chain.
+  static Value *chain;
+
+ private:
+  /// Links the value into the chain.
+  void link();
+  /// Unlinks the value from the chain.
+  void unlink();
+
  private:
   /// Wrapped value.
   value value_;
+  /// Previous node in the value chain.
+  Value *prev_;
+  /// Next node in the value chain.
+  Value *next_;
 };
 
 

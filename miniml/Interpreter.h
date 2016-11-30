@@ -15,27 +15,20 @@ class Context;
 class Stack {
  public:
   /// Pushes a value onto the stack.
-  void push(value value);
+  void push(Value value);
   /// Pops a value from the stack.
-  value pop();
+  Value pop();
   /// Pops n values from the stack.
   void pop_n(unsigned n);
   /// Peeks at a stack value.
-  value &operator[](unsigned n) {
-    return *(stack_.rbegin() + n);
-  }
+  Value &operator[](unsigned n);
   /// Returns the stack pointer value.
-  unsigned getSP() const {
-    return stack_.size();
-  }
+  unsigned getSP() const;
   /// Sets the stack pointer value.
-  void setSP(unsigned sp) {
-    stack_.erase(stack_.begin() + sp, stack_.end());
-  }
-
+  void setSP(unsigned sp);
  private:
   /// Vector containing stack values.
-  std::vector<value> stack_;
+  std::vector<Value> stack_;
 };
 
 

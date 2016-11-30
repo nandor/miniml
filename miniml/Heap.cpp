@@ -10,6 +10,18 @@ using namespace miniml;
 // -----------------------------------------------------------------------------
 // Heap
 // -----------------------------------------------------------------------------
+Heap::Heap()
+  : minorHeapSize(4 << 10 /* 4Kb */)
+  , majorNodeSize(4 << 10 /* 4Kb */)
+  , minorStart(nullptr)
+  , minorCurrent(nullptr)
+  , major(nullptr)
+{
+}
+
+Heap::~Heap() {
+}
+
 value Heap::allocInt64(int64_t i) {
   return (static_cast<uint64_t>(i) << 1ull) | 1ull;
 }

@@ -10,6 +10,41 @@ using namespace miniml;
 /// Magic value of serializes blocks.
 static const uint32_t kBlockMagic = 0x8495A6BE;
 
+/// First node of the value chain.
+Value *Value::chain = nullptr;
+
+
+
+// -----------------------------------------------------------------------------
+// Value
+// -----------------------------------------------------------------------------
+void Value::link() {
+  if (value_ & 0x1) {
+    return;
+  }
+  prev_ = nullptr;
+  next_ = chain;
+  if (chain) {
+    chain->prev_ = this;
+  }
+  chain = this;
+}
+
+void Value::unlink() {
+  if (value_ & 0x1) {
+    return;
+  }
+  if (this == chain) {
+    chain = this->next_;
+  }
+  if (prev_) {
+    prev_->next_ = next_;
+  }
+  if (next_) {
+    next_->prev_ = prev_;
+  }
+}
+
 
 
 // -----------------------------------------------------------------------------

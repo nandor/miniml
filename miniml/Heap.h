@@ -11,6 +11,10 @@ namespace miniml {
 // Heap managing memory.
 class Heap {
  public:
+  /// Initializes the heap.
+  Heap();
+  /// Destroys the heap.
+  ~Heap();
 
   // Allocates values on the heap.
   value allocInt64(int64_t i);
@@ -21,15 +25,15 @@ class Heap {
   value allocCustom(CustomOperations *ops, size_t size);
 
  private:
+  /// Size of the minor heap.
+  size_t minorHeapSize;
+  /// Size of a major node.
+  size_t majorNodeSize;
+
   /// Start address of the minor heap.
   uint8_t *minorStart;
   /// Last allocated block in the minor heap.
   uint8_t *minorCurrent;
-
-  /// Size of the minor heap.
-  size_t minoHeapSize;
-  /// Size of a major node.
-  size_t majorNodeSize;
 
   // Major heap node.
   struct Major {
@@ -42,7 +46,7 @@ class Heap {
   };
 
   // First heap node.
-  Major *first;
+  Major *major;
 };
 
 }

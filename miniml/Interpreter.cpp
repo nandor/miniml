@@ -12,18 +12,30 @@ using namespace miniml;
 // -----------------------------------------------------------------------------
 // Stack
 // -----------------------------------------------------------------------------
-void Stack::push(value value) {
+void Stack::push(Value value) {
   stack_.push_back(value);
 }
 
-value Stack::pop() {
-  value val = *stack_.rbegin();
+Value Stack::pop() {
+  Value val = *stack_.rbegin();
   stack_.pop_back();
   return val;
 }
 
 void Stack::pop_n(uint32_t n) {
   stack_.erase(stack_.end() - n, stack_.end());
+}
+
+Value &Stack::operator[](unsigned n) {
+  return *(stack_.rbegin() + n);
+}
+
+unsigned Stack::getSP() const {
+  return stack_.size();
+}
+
+void Stack::setSP(unsigned sp) {
+  stack_.erase(stack_.begin() + sp, stack_.end());
 }
 
 
@@ -204,7 +216,6 @@ Value Interpreter::run() {
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
-    std::cerr << stack.getSP() << std::endl;
   }
 }
 
