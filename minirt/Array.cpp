@@ -50,7 +50,7 @@ extern "C" value caml_array_unsafe_get(
   size_t sz = val_size(array);
   int64_t idx = val_to_int64(index);
   if (idx < 0 || static_cast<int64_t>(sz) <= idx) {
-    throw std::runtime_error("Index out of bounds.");
+    throw std::runtime_error("caml_array_unsafe_get");
   }
   return val_field(array, val_to_int64(index));
 }
@@ -72,14 +72,12 @@ extern "C" value caml_array_blit(
     value ofs2,
     value n)
 {
-
   if (val_tag(a2) == kDoubleArrayTag) {
     throw std::runtime_error("caml_array_blit");
   }
 
   value *src = &val_field(a1, val_to_int64(ofs1));
   value *dst = &val_field(a2, val_to_int64(ofs2));
-
   for (int64_t i = 0; i < val_to_int64(n); ++i) {
     dst[i] = src[i];
   }

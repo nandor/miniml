@@ -214,7 +214,14 @@ Value Interpreter::run() {
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
-    std::cout << ++l << " " << stack.getSP() << " " << extraArgs << " " << (A & 1 ? (int64_t)A : 0) /*<< " " << code[PC]*/ << std::endl;
+    std::cout << ++l << " " << stack.getSP() << " " << extraArgs << " " << (A & 1 ? (int64_t)A : 0);
+    std::cout << " | ";
+    for (size_t i = 0; i < stack.getSP(); ++i) {
+      auto &s = stack[i];
+      std::cout << " " << (s & 1 ? (int64_t)s : 0);
+    }
+    std::cout << " PC:" << code[PC];
+    std::cout << std::endl;
   }
 }
 
@@ -638,6 +645,7 @@ void Interpreter::runCCALL(uint32_t n) {
   if (ptr == nullptr) {
     throw std::runtime_error("Undefined prim " + std::to_string(p));
   }
+  std::cout << p << std::endl;
 
   stack.push(env);
 

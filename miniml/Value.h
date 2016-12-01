@@ -43,7 +43,7 @@ struct CustomOperations {
   uint64_t (*hash)        (Context &ctx, value, value);
   void     (*serialize)   (Context &ctx, value, StreamWriter &stream);
   value    (*deserialize) (Context &ctx, StreamReader &stream);
-  void     (*print)       (Context &ctx, std::ostream &os);
+  void     (*print)       (Context &ctx, value, std::ostream &os);
   int      (*compare_ext) (Context &ctx, value, value);
 };
 

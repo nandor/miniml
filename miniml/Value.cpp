@@ -207,7 +207,7 @@ void miniml::printValue(Context &ctx, Value val, std::ostream &os) {
       auto ops = val.getOps();
       os << "<custom:";
       if (ops->print) {
-        ops->print(ctx, os);
+        ops->print(ctx, val, os);
       }
       os << ">";
       return;
