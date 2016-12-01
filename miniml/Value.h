@@ -55,7 +55,11 @@ inline value val_int64(int64_t val) {
 }
 /// Checks if a value is an integer.
 inline bool val_is_int64(value val) {
-  return val & 0x1;
+  return (val & 0x1) == 0x1;
+}
+/// Checks if a value is a block.
+inline bool val_is_block(value val) {
+  return (val & 0x1) == 0x0;
 }
 /// Returns the block header.
 inline uint64_t &val_header(value val) {
@@ -110,6 +114,13 @@ inline double val_to_double(value val) {
 inline char *val_to_string(value val) {
   assert(val_tag(val) == kStringTag && "Value is not a string.");
   return reinterpret_cast<char *>(val_ptr(val));
+}
+/// Computes the length of a string.
+inline size_t val_strlen(value val) {
+  assert(val_tag(val) == kStringTag && "Value is not a string.");
+  const auto data = reinterpret_cast<const char *>(val_ptr(val));
+  const size_t blkSize = val_size(val) * sizeof(value);
+  return blkSize - data[blkSize - 1] - 1;
 }
 
 
@@ -210,10 +221,7 @@ class Value final {
 
   /// Returns the length of a string.
   size_t strlen() const {
-    assert(tag() == kStringTag && "Value is not a string.");
-    const auto data = reinterpret_cast<const char *>(ptr());
-    const size_t blkSize = size() * sizeof(value);
-    return blkSize - data[blkSize - 1] - 1;
+    return val_strlen(value_);
   }
 
   /// Sets the code of a closure.

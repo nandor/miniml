@@ -147,8 +147,6 @@ class Interpreter {
  private:
   /// Reference to the context.
   Context &ctx;
-  /// Builtin functions.
-  std::vector<void *> prim;
   /// Code being executed.
   const uint32_t *code;
   /// Stack.
@@ -165,8 +163,8 @@ class Interpreter {
   value env;
   /// Global state.
   Value global;
-  /// Atom table.
-  Value atom[256];
+  /// Builtin functions.
+  std::vector<void *> prim;
 };
 
 } // namespace miniml

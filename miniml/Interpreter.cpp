@@ -51,13 +51,10 @@ Interpreter::Interpreter(
   : ctx(ctx)
   , code(code)
   , A(1ull)
+  , extraArgs(0)
   , global(global)
   , prim(prim)
-  , extraArgs(0)
 {
-  for (size_t i = 0; i < 256; ++i) {
-    atom[i] = ctx.allocBlock(0, i);
-  }
 }
 
 Interpreter::~Interpreter() {
@@ -261,17 +258,19 @@ void Interpreter::runGETFIELD(uint32_t n) {
 // -----------------------------------------------------------------------------
 void Interpreter::runGETFLOATFIELD(uint32_t n) {
   std::cerr << "GETFLOATFIELD" << std::endl;
+  (void) n;
   throw std::runtime_error("GETFLOATFIELD");
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runSETFIELD(uint32_t n) {
-  std::cerr << "SETFIELD" << std::endl;
-  throw std::runtime_error("SETFIELD");
+  A.setField(n, stack.pop());
+  A = kUnit;
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runSETFLOATFIELD(uint32_t n) {
+  (void) n;
   throw std::runtime_error("SETFLOATFIELD");
 }
 
@@ -352,8 +351,18 @@ void Interpreter::runAPPLY2() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runAPPLY3() {
-  std::cerr << "APPLY3 " << std::endl;
-  throw std::runtime_error("APPLY3");
+  value arg3 = stack.pop();
+  value arg2 = stack.pop();
+  value arg1 = stack.pop();
+  stack.push(val_int64(extraArgs));
+  stack.push(env);
+  stack.push(val_int64(PC));
+  stack.push(arg1);
+  stack.push(arg2);
+  stack.push(arg3);
+  PC = A.getCode();
+  env = A;
+  extraArgs = 2;
 }
 
 // -----------------------------------------------------------------------------
@@ -392,8 +401,12 @@ void Interpreter::runAPPTERM3() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runRESTART() {
-  std::cerr << "RESTART" << std::endl;
-  throw std::runtime_error("RESTART");
+  long n = val_size(env) - 2;
+  for (long i = n - 1; i >= 0; --i) {
+    stack.push(val_field(env, i + 2));
+  }
+  env = val_field(env, 1);
+  extraArgs += n;
 }
 
 // -----------------------------------------------------------------------------
@@ -463,6 +476,7 @@ void Interpreter::runOFFSETCLOSUREM2() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runOFFSETCLOSURE(uint32_t n) {
+  (void) n;
   throw std::runtime_error("OFFSETCLOSURE");
 }
 
@@ -513,13 +527,13 @@ void Interpreter::runSETGLOBAL(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runATOM(uint32_t n) {
-  A = atom[n];
+  A = ctx.allocAtom(n);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runPUSHATOM(uint32_t n) {
   stack.push(A);
-  A = atom[n];
+  A = ctx.allocAtom(n);
 }
 
 // -----------------------------------------------------------------------------
@@ -535,6 +549,7 @@ void Interpreter::runMAKEBLOCK(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runMAKEFLOATBLOCK(uint32_t n) {
+  (void) n;
   throw std::runtime_error("MAKEFLOATBLOCK");
 }
 
@@ -686,28 +701,38 @@ void Interpreter::runMODINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runANDINT() {
-  throw std::runtime_error("ANDINT");
+  auto B = stack.pop();
+  A = ctx.allocInt64(static_cast<value>(A) & static_cast<value>(B));
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runORINT() {
-  throw std::runtime_error("ORINT");
+  auto B = stack.pop();
+  A = ctx.allocInt64(static_cast<value>(A) | static_cast<value>(B));
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runXORINT() {
-  throw std::runtime_error("XORINT");
+  auto B = stack.pop();
+  A = ctx.allocInt64((static_cast<value>(A) ^ B) | 1);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runLSLINT() {
-  throw std::runtime_error("LSLINT");
+  auto B = stack.pop();
+  A = ctx.allocInt64(((static_cast<value>(A) - 1) << B.getInt64()) + 1);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runLSRINT() {
-  int64_t i = val_to_int64(stack.pop());
-  A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) >> i);
+  auto B = stack.pop();
+  A = ctx.allocInt64(((static_cast<value>(A) - 1) >> B.getInt64()) | 1);
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runASRINT() {
+  auto B = stack.pop();
+  A = ctx.allocInt64(((static_cast<value>(A) - 1) >> B.getInt64()) | 1);
 }
 
 // -----------------------------------------------------------------------------
@@ -717,7 +742,8 @@ void Interpreter::runOFFSETINT(int32_t ofs) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runOFFSETREF() {
-  throw std::runtime_error("OFFSETREF");
+  val_field(A, 0) += val_to_int64(code[PC++]);
+  A = kUnit;
 }
 
 // -----------------------------------------------------------------------------
@@ -733,11 +759,6 @@ void Interpreter::runGETMETHOD() {
 // -----------------------------------------------------------------------------
 void Interpreter::runBEQ() {
   throw std::runtime_error("BEQ");
-}
-
-// -----------------------------------------------------------------------------
-void Interpreter::runASRINT() {
-  throw std::runtime_error("ASRINT");
 }
 
 // -----------------------------------------------------------------------------
@@ -819,22 +840,38 @@ void Interpreter::runRAISE() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBLTINT() {
-  throw std::runtime_error("BLTINT");
+  if (static_cast<uint32_t>(code[PC++]) < A.getInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBLEINT() {
-  throw std::runtime_error("BLEINT");
+  if (static_cast<uint32_t>(code[PC++]) <= A.getInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBGTINT() {
-  throw std::runtime_error("BGTINT");
+  if (static_cast<uint32_t>(code[PC++]) > A.getInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBGEINT() {
-  throw std::runtime_error("BGEINT");
+  if (static_cast<uint32_t>(code[PC++]) >= A.getInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
 }
 
 // -----------------------------------------------------------------------------

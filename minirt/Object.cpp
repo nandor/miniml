@@ -14,7 +14,7 @@ static int64_t oo_last_id = 0ll;
 
 
 extern "C" value caml_set_oo_id(
-    Context &ctx,
+    Context &,
     value obj)
 {
   val_field(obj, 1) = val_int64(oo_last_id);
@@ -23,8 +23,8 @@ extern "C" value caml_set_oo_id(
 }
 
 extern "C" value caml_fresh_oo_id(
-    Context &ctx,
-    value v)
+    Context &,
+    value)
 {
   value val = val_int64(oo_last_id);
   oo_last_id += 1;
@@ -50,4 +50,20 @@ extern "C" value caml_obj_dup(
     }
   }
   return ret;
+}
+
+extern "C" value caml_obj_block(
+    Context &ctx,
+    value tag,
+    value size)
+{
+  if (auto sz = val_to_int64(size)) {
+    value ret = ctx.allocBlock(sz, val_to_int64(tag));
+    for (int64_t i = 0; i < sz; ++i) {
+      val_field(ret, i) = val_int64(0);
+    }
+    return ret;
+  } else {
+    return ctx.allocAtom(0);
+  }
 }

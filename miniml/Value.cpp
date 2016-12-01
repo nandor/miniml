@@ -157,10 +157,9 @@ Value miniml::getValue(Context &ctx, StreamReader &stream) {
     }
   }
 
-  uint32_t objCount = stream.getUInt32be();
-  uint32_t size32 = stream.getUInt32be();
-  uint32_t size64 = stream.getUInt32be();
-
+  stream.getUInt32be();
+  stream.getUInt32be();
+  stream.getUInt32be();
   return getValueImpl(ctx, stream);
 }
 
@@ -170,6 +169,9 @@ Value miniml::getValue(Context &ctx, StreamReader &stream) {
 // putValue
 // -----------------------------------------------------------------------------
 void miniml::putValue(Context &ctx, Value value, StreamWriter &stream) {
+  (void) ctx;
+  (void) value;
+  (void) stream;
 }
 
 

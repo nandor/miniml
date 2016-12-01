@@ -31,6 +31,7 @@ class Context {
   value allocString(const char *str, size_t length);
   value allocBlock(size_t n, uint8_t tag);
   value allocCustom(CustomOperations *op, size_t size);
+  value allocAtom(uint8_t id);
 
   // Custom value operations.
   void registerOperations(CustomOperations *value);
@@ -46,6 +47,8 @@ class Context {
   Heap heap_;
   /// List of custom values.
   std::unordered_map<std::string, CustomOperations *> custom_;
+  /// Atom table.
+  Value atom_[256];
 };
 
 } // namespace miniml

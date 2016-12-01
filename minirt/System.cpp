@@ -12,7 +12,7 @@ using namespace miniml;
 // -----------------------------------------------------------------------------
 extern "C" value caml_sys_get_argv(
     Context &ctx,
-    value unit)
+    value)
 {
   Value ret = ctx.allocBlock(2, 0);
   ret.setField(0, ctx.allocString("miniml", 6));
@@ -22,7 +22,7 @@ extern "C" value caml_sys_get_argv(
 
 extern "C" value caml_sys_get_config(
     Context &ctx,
-    value unit)
+    value)
 {
   Value ret = ctx.allocBlock(3, 0);
   ret.setField(0, ctx.allocString("OSX", 3));
@@ -32,57 +32,57 @@ extern "C" value caml_sys_get_config(
 }
 
 extern "C" value caml_sys_const_backend_type(
-    Context &ctx,
-    value unit)
+    Context &,
+    value)
 {
   return val_int64(1);
 }
 
 extern "C" value caml_sys_const_big_endian(
-    Context &ctx,
-    Value unit)
+    Context &,
+    Value)
 {
   return kFalse;
 }
 
 extern "C" value caml_sys_const_word_size(
-    Context &ctx,
-    Value unit)
+    Context &,
+    Value)
 {
   return val_int64(8 * sizeof(value));
 }
 
 extern "C" value caml_sys_const_int_size(
-    Context &ctx,
-    Value unit)
+    Context &,
+    Value)
 {
   return val_int64(sizeof(value) * 8 - 1);
 }
 
 extern "C" value caml_sys_const_max_wosize(
-    Context &ctx,
-    Value unit)
+    Context &,
+    Value)
 {
   return val_int64((1ull << 54ull) - 1ull);
 }
 
 extern "C" value caml_sys_const_ostype_cygwin(
-    Context &ctx,
-    Value unit)
+    Context &,
+    Value)
 {
   return kFalse;
 }
 
 extern "C" value caml_sys_const_ostype_unix(
-    Context &ctx,
-    Value unit)
+    Context &,
+    Value)
 {
   return kTrue;
 }
 
 extern "C" value caml_sys_const_ostype_win32(
-    Context &ctx,
-    Value unit)
+    Context &,
+    Value)
 {
   return kFalse;
 }

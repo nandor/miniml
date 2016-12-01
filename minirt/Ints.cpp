@@ -37,7 +37,7 @@ value nativeint_deserialize(Context &ctx, StreamReader &stream) {
 }
 
 extern "C" value caml_nativeint_shift_left(
-    Context &ctx,
+    Context &,
     value v1,
     value v2)
 {
@@ -45,7 +45,7 @@ extern "C" value caml_nativeint_shift_left(
 }
 
 extern "C" value caml_nativeint_sub(
-    Context &ctx,
+    Context &,
     value v1,
     value v2)
 {

@@ -17,6 +17,11 @@ Heap::Heap()
   , minorCurrent(nullptr)
   , major(nullptr)
 {
+  (void) minorHeapSize;
+  (void) majorNodeSize;
+  (void) minorStart;
+  (void) minorCurrent;
+  (void) major;
 }
 
 Heap::~Heap() {

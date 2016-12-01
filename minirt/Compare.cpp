@@ -6,7 +6,7 @@
 using namespace miniml;
 
 extern "C" value caml_greaterequal(
-    Context &ctx,
+    Context &,
     value v1,
     value v2)
 {

@@ -48,6 +48,13 @@ value Context::allocCustom(CustomOperations *op, size_t size) {
   return heap_.allocCustom(op, size);
 }
 
+value Context::allocAtom(uint8_t id) {
+  if (atom_[id] == 0) {
+    atom_[id] = heap_.allocBlock(id, 0);
+  }
+  return atom_[id];
+}
+
 void Context::registerOperations(CustomOperations *value) {
   custom_[value->identifier] = value;
 }

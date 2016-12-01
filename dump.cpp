@@ -22,7 +22,7 @@ static void dumpData(Context &ctx, Section *section) {
 
 
 // -----------------------------------------------------------------------------
-static void dumpStrings(Context &ctx, Section *section) {
+static void dumpStrings(Context &, Section *section) {
   MemoryStreamReader stream(section->getData(), section->getSize());
   while (!stream.eof()) {
     std::cout << "  " << stream.getString() << std::endl;

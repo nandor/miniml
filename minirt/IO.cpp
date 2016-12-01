@@ -16,7 +16,7 @@ struct channel {
   int fd;
 };
 
-void channel_finalize(Context &ctx, value val) {
+void channel_finalize(Context &, value) {
 }
 
 
@@ -59,34 +59,37 @@ extern "C" value caml_ml_open_descriptor_out(
 
 
 extern "C" value caml_register_named_value(
-    Context &ctx,
+    Context &,
     value vname,
     value val)
 {
+  (void) vname;
+  (void) val;
   //std::cerr << "caml_register_named_value" << std::endl;
   return kUnit;
 }
 
 extern "C" value caml_ml_output(
-    Context &ctx,
+    Context &,
     value vchannel,
     value buff,
     value start,
     value length)
 {
+  (void) start;
+
   auto chan = val_to_custom<channel>(vchannel);
-  auto pos = val_to_int64(start);
   auto len = val_to_int64(length);
   auto *buf = val_to_string(buff);
 
-  for (uint64_t i = 0; i < len; ++i) {
+  for (int64_t i = 0; i < len; ++i) {
     write(chan->fd, &buf[i], 1);
   }
   return kUnit;
 }
 
 extern "C" value caml_ml_output_char(
-    Context &ctx,
+    Context &,
     value vchannel,
     value ch)
 {
@@ -97,7 +100,7 @@ extern "C" value caml_ml_output_char(
 }
 
 extern "C" value caml_ml_flush(
-    Context &ctx,
+    Context &,
     value vchannel)
 {
   fsync(val_to_custom<channel>(vchannel)->fd);
@@ -106,7 +109,7 @@ extern "C" value caml_ml_flush(
 
 extern "C" value caml_ml_out_channels_list(
     Context &ctx,
-    value unit)
+    value)
 {
   value result = ctx.allocBlock(2, 0);
   val_field(result, 0) = caml_ml_open_descriptor_in(ctx, val_int64(0));

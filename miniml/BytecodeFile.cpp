@@ -40,9 +40,9 @@ struct [[gnu::packed]] MSection {
 
 
 BytecodeFile::BytecodeFile(const std::string &path)
-  : fd_(-1)
-  , start_(nullptr)
+  : start_(nullptr)
   , size_(0)
+  , fd_(-1)
 {
   // MMap the file.
   if ((fd_ = open(path.c_str(), O_RDONLY)) < 0) {
