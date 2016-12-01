@@ -93,7 +93,7 @@ static Value getValueImpl(Context &ctx, StreamReader &stream) {
     return value;
   }
   case 0x07: case 0x0F: {
-    // Sequence of doubles with 8-bit header.
+    // Sequence of doubles with 32-bit header.
     size_t length = stream.getUInt32be();
     Value value = ctx.allocBlock(length, kDoubleArrayTag);
     for (size_t i = 0; i < length; ++i) {
@@ -182,9 +182,6 @@ void miniml::putValue(Context &ctx, Value value, StreamWriter &stream) {
 void miniml::printValue(Context &ctx, Value val, std::ostream &os) {
   /// Helper to recursively print values.
   std::function<void(Value, size_t)> print = [&](Value val, size_t indent) {
-    for (size_t i = 0; i < indent; ++i) {
-      os << "  ";
-    }
     if (val.isInt64()) {
       os << val.getInt64();
       return;
@@ -224,6 +221,10 @@ void miniml::printValue(Context &ctx, Value val, std::ostream &os) {
     if (val.isBlock()) {
       os << "(" << static_cast<int>(val.tag()) << ") {\n";
       for (size_t i = 0; i < val.size(); ++i) {
+        for (size_t j = 0; j <= indent; ++j) {
+          os << "  ";
+        }
+        os << i << ": ";
         print(val.getField(i), indent + 1);
         os << "\n";
       }

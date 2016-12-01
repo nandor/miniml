@@ -67,3 +67,10 @@ extern "C" value caml_obj_block(
     return ctx.allocAtom(0);
   }
 }
+
+extern "C" value caml_int_as_pointer(
+    Context &,
+    value n)
+{
+  return n - 1;
+}

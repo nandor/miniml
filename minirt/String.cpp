@@ -56,6 +56,10 @@ extern "C" value caml_string_compare(
     value v1,
     value v2)
 {
+  if (v1 == v2) {
+    return val_int64(0);
+  }
+
   size_t l1 = val_strlen(v1);
   size_t l2 = val_strlen(v2);
 

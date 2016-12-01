@@ -49,10 +49,7 @@ value Context::allocCustom(CustomOperations *op, size_t size) {
 }
 
 value Context::allocAtom(uint8_t id) {
-  if (atom_[id] == 0) {
-    atom_[id] = heap_.allocBlock(id, 0);
-  }
-  return atom_[id];
+  return id;
 }
 
 void Context::registerOperations(CustomOperations *value) {

@@ -55,7 +55,6 @@ class Interpreter {
   void runPUSHACC(uint32_t n);
   void runPOP(uint32_t n);
   void runASSIGN(uint32_t n);
-  void runENVACC();
   void runGETFIELD(uint32_t n);
   void runGETFLOATFIELD(uint32_t n);
   void runSETFIELD(uint32_t n);
@@ -67,7 +66,7 @@ class Interpreter {
   void runSETSTRINGCHAR();
   void runENVACC(uint32_t n);
   void runPUSHENVACC(uint32_t n);
-  void runPUSH_RETADDR();
+  void runPUSH_RETADDR(int32_t ofs);
   void runAPPLY(uint32_t args);
   void runAPPLY1();
   void runAPPLY2();

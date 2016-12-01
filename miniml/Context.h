@@ -47,8 +47,6 @@ class Context {
   Heap heap_;
   /// List of custom values.
   std::unordered_map<std::string, CustomOperations *> custom_;
-  /// Atom table.
-  Value atom_[256];
 };
 
 } // namespace miniml

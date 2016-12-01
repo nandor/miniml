@@ -10,8 +10,22 @@ using namespace miniml;
 // -----------------------------------------------------------------------------
 // int32
 // -----------------------------------------------------------------------------
+value int32_deserialize(Context &, StreamReader &);
+CustomOperations int32_ops = {
+  "_i",
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  int32_deserialize,
+  nullptr,
+  nullptr,
+};
+
 value int32_deserialize(Context &ctx, StreamReader &stream) {
-  return ctx.allocInt64(stream.getInt32be());
+  auto c = ctx.allocCustom(&int32_ops, sizeof(int32_t));
+  *reinterpret_cast<int32_t*>(val_ptr(c)) = stream.getInt32be();
+  return c;
 }
 
 
@@ -19,20 +33,64 @@ value int32_deserialize(Context &ctx, StreamReader &stream) {
 // -----------------------------------------------------------------------------
 // int64
 // -----------------------------------------------------------------------------
+value int64_deserialize(Context &, StreamReader &);
+CustomOperations int64_ops = {
+  "_j",
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  int64_deserialize,
+  nullptr,
+  nullptr,
+};
+
 value int64_deserialize(Context &ctx, StreamReader &stream) {
-  return ctx.allocInt64(stream.getInt64le());
+  auto c = ctx.allocCustom(&int64_ops, sizeof(int64_t));
+  *reinterpret_cast<int64_t*>(val_ptr(c)) = stream.getInt64be();
+  return c;
 }
 
+extern "C" value caml_int64_float_of_bits(
+    Context &ctx,
+    value vi)
+{
+  union { double dbl_val; int64_t int_val; } v;
+  v.int_val = *reinterpret_cast<int64_t*>(val_ptr(vi));
+  return ctx.allocDouble(v.dbl_val);
+}
 
 
 // -----------------------------------------------------------------------------
 // nativeint
 // -----------------------------------------------------------------------------
+value nativeint_deserialize(Context &, StreamReader &);
+CustomOperations nativeint_ops = {
+  "_n",
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nativeint_deserialize,
+  nullptr,
+  nullptr,
+};
+
 value nativeint_deserialize(Context &ctx, StreamReader &stream) {
   switch (stream.getUInt8()) {
-  case 1: return ctx.allocInt64(stream.getInt32be());
-  case 2: return ctx.allocInt64(stream.getInt64le());
-  default: throw std::runtime_error("Cannot deserialize nativeint");
+  case 1: {
+    auto c = ctx.allocCustom(&nativeint_ops, sizeof(int32_t));
+    *reinterpret_cast<int32_t*>(val_ptr(c)) = stream.getInt32be();
+    return c;
+  }
+  case 2: {
+    auto c = ctx.allocCustom(&nativeint_ops, sizeof(int64_t));
+    *reinterpret_cast<int64_t*>(val_ptr(c)) = stream.getInt64be();
+    return c;
+  }
+  default: {
+    throw std::runtime_error("Cannot deserialize nativeint");
+  }
   }
 }
 
@@ -55,15 +113,6 @@ extern "C" value caml_nativeint_sub(
 // -----------------------------------------------------------------------------
 // Numeric stuff
 // -----------------------------------------------------------------------------
-extern "C" value caml_int64_float_of_bits(
-    Context &ctx,
-    value vi)
-{
-  union { double dbl_val; int64_t int_val; } v;
-  v.int_val = val_to_int64(vi);
-  return ctx.allocDouble(v.dbl_val);
-}
-
 extern "C" value caml_format_float(
     Context &ctx,
     value fmt,
@@ -93,39 +142,12 @@ extern "C" value caml_format_int(
 
 
 // -----------------------------------------------------------------------------
-// Custom Operations
+// Tagged Ints
 // -----------------------------------------------------------------------------
-CustomOperations int32_ops = {
-  "_i",
-  nullptr,
-  nullptr,
-  nullptr,
-  nullptr,
-  int32_deserialize,
-  nullptr,
-  nullptr,
-};
-
-
-CustomOperations int64_ops = {
-  "_j",
-  nullptr,
-  nullptr,
-  nullptr,
-  nullptr,
-  int64_deserialize,
-  nullptr,
-  nullptr,
-};
-
-
-CustomOperations nativeint_ops = {
-  "_n",
-  nullptr,
-  nullptr,
-  nullptr,
-  nullptr,
-  nativeint_deserialize,
-  nullptr,
-  nullptr,
-};
+extern "C" value caml_int_compare(
+    Context &,
+    value v1,
+    value v2)
+{
+  return val_int64((v1 > v2) - (v1 < v2));
+}
