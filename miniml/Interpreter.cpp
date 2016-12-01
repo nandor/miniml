@@ -796,7 +796,7 @@ void Interpreter::runNEQ() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runLTINT() {
-  if (A.getInt64() < val_to_int64(stack.pop())) {
+  if (A < stack.pop()) {
     A = kTrue;
   } else {
     A = kFalse;
@@ -805,7 +805,7 @@ void Interpreter::runLTINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runLEINT() {
-  if (A.getInt64() <= val_to_int64(stack.pop())) {
+  if (A <= stack.pop()) {
     A = kTrue;
   } else {
     A = kFalse;
@@ -814,7 +814,7 @@ void Interpreter::runLEINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGTINT() {
-  if (A.getInt64() > val_to_int64(stack.pop())) {
+  if (A > stack.pop()) {
     A = kTrue;
   } else {
     A = kFalse;
@@ -823,28 +823,10 @@ void Interpreter::runGTINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGEINT() {
-  if (A.getInt64() >= val_to_int64(stack.pop())) {
+  if (A >= stack.pop()) {
     A = kTrue;
   } else {
     A = kFalse;
-  }
-}
-
-// -----------------------------------------------------------------------------
-void Interpreter::runBEQ() {
-  auto v = static_cast<uint32_t>(code[PC++]);
-  auto ofs = static_cast<int32_t>(code[PC++]);
-  if (v == A.getInt64()) {
-    PC += ofs - 1;
-  }
-}
-
-// -----------------------------------------------------------------------------
-void Interpreter::runBNEQ() {
-  auto v = static_cast<uint32_t>(code[PC++]);
-  auto ofs = static_cast<int32_t>(code[PC++]);
-  if (v != A.getInt64()) {
-    PC += ofs - 1;
   }
 }
 
@@ -872,6 +854,24 @@ void Interpreter::runRAISE() {
   trapSP = val_to_int64(stack.pop());
   env = stack.pop();
   extraArgs = val_to_int64(stack.pop());
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBEQ() {
+  if (static_cast<uint32_t>(code[PC++]) == A.getInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runBNEQ() {
+  if (static_cast<uint32_t>(code[PC++]) != A.getInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
