@@ -42,16 +42,21 @@ extern "C" value caml_array_set_addr(
   return kUnit;
 }
 
+extern "C" value caml_array_unsafe_set(
+    Context &,
+    value array,
+    value index,
+    value val)
+{
+  val_field(array, val_to_int64(index)) = val;
+  return kUnit;
+}
+
 extern "C" value caml_array_unsafe_get(
     Context &,
     value array,
     value index)
 {
-  size_t sz = val_size(array);
-  int64_t idx = val_to_int64(index);
-  if (idx < 0 || static_cast<int64_t>(sz) <= idx) {
-    throw std::runtime_error("caml_array_unsafe_get");
-  }
   return val_field(array, val_to_int64(index));
 }
 

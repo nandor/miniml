@@ -215,11 +215,6 @@ Value Interpreter::run() {
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
     std::cout << ++l << " " << stack.getSP() << " " << extraArgs << " " << (A & 1 ? (int64_t)A : 0);
-    std::cout << " | ";
-    for (size_t i = 0; i < stack.getSP(); ++i) {
-      auto &s = stack[i];
-      std::cout << " " << (s & 1 ? (int64_t)s : 0);
-    }
     std::cout << " PC:" << code[PC];
     std::cout << std::endl;
   }
@@ -596,13 +591,21 @@ void Interpreter::runBRANCHIFNOT(int32_t ofs) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runSWITCH() {
-  std::cerr << "SWITCH" << std::endl;
-  throw std::runtime_error("SWITCH");
+  uint32_t n = code[PC++];
+  if (val_is_block(A)) {
+    int64_t index = val_tag(A);
+    assert((uint64_t) index < (n >> 16));
+    PC += static_cast<int32_t>(code[PC + (n & 0xFFFF) + index]);
+  } else {
+    int64_t index = val_to_int64(A);
+    assert((uint64_t) index < (n & 0xFFFF)) ;
+    PC += static_cast<int32_t>(code[PC + index]);
+  }
+  exit(0);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBOOLNOT() {
-  std::cerr << "BOOLNOT" << std::endl;
   throw std::runtime_error("BOOLNOT");
 }
 
@@ -768,7 +771,7 @@ void Interpreter::runOFFSETREF() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runISINT() {
-  throw std::runtime_error("ISINT");
+  A = val_int64(val_is_int64(A) ? 1 : 0);
 }
 
 // -----------------------------------------------------------------------------
