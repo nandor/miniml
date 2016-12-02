@@ -531,7 +531,6 @@ void Interpreter::runGETGLOBALFIELD() {
   uint32_t n = code[PC++];
   uint32_t p = code[PC++];
   A = global.getField(n).getField(p);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -691,6 +690,7 @@ void Interpreter::runMULINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runNEGINT() {
+  throw std::runtime_error("NEGINT");
 }
 
 // -----------------------------------------------------------------------------

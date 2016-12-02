@@ -50,98 +50,137 @@ void Value::unlink() {
 // -----------------------------------------------------------------------------
 // getValue
 // -----------------------------------------------------------------------------
-static Value getValueImpl(Context &ctx, StreamReader &stream) {
-  switch (auto code = stream.getUInt8()) {
-  case 0x00: return ctx.allocInt64(stream.getInt8());
-  case 0x01: return ctx.allocInt64(stream.getInt16be());
-  case 0x02: return ctx.allocInt64(stream.getInt32be());
-  case 0x03: return ctx.allocInt64(stream.getInt64be());
-  case 0x04: return ctx.allocInt64(stream.getUInt8());
-  case 0x05: return ctx.allocInt64(stream.getUInt16be());
-  case 0x06: return ctx.allocInt64(stream.getUInt32be());
-  case 0x08: {
-    // Object with 32-bit header.
-    uint32_t header = stream.getUInt32be();
-    size_t size = header >> 10;
-    uint8_t tag = header & 0xFF;
-    Value value = ctx.allocBlock(size, tag);
-    for (size_t i = 0; i < size; ++i) {
-      value.setField(i, getValueImpl(ctx, stream));
+class ValueReader {
+ public:
+  ValueReader(Context &ctx, StreamReader &stream, size_t count)
+    : ctx_(ctx)
+    , stream_(stream)
+    , objects_(count, 0ll)
+    , index_(0)
+  {
+  }
+
+  Value read() {
+    switch (auto code = stream_.getUInt8()) {
+    case 0x00: return ctx_.allocInt64(stream_.getInt8());
+    case 0x01: return ctx_.allocInt64(stream_.getInt16be());
+    case 0x02: return ctx_.allocInt64(stream_.getInt32be());
+    case 0x03: return ctx_.allocInt64(stream_.getInt64be());
+    case 0x04: return objects_[index_ - ctx_.allocInt64(stream_.getUInt8())];
+    case 0x05: return objects_[index_ - ctx_.allocInt64(stream_.getUInt16be())];
+    case 0x06: return objects_[index_ - ctx_.allocInt64(stream_.getUInt32be())];
+    case 0x08: {
+      // Object with 32-bit header.
+      uint32_t header = stream_.getUInt32be();
+      size_t size = header >> 10;
+      uint8_t tag = header & 0xFF;
+      Value val = ctx_.allocBlock(size, tag);
+      for (size_t i = 0; i < size; ++i) {
+        val.setField(i, read());
+      }
+      objects_[index_++] = val;
+      return val;
     }
-    return value;
-  }
-  case 0x09: {
-    // String with 8-bit header.
-    size_t length = stream.getUInt8();
-    return ctx.allocString(stream.getString(length), length);
-  }
-  case 0x0A: {
-    // String with 32-bit header.
-    size_t length = stream.getUInt32be();
-    return ctx.allocString(stream.getString(length), length);
-  }
-  case 0x0B: case 0x0C: {
-    return ctx.allocDouble(stream.getDouble());
-  }
-  case 0x0D: case 0x0E:{
-    // Sequence of doubles with 8-bit header.
-    size_t length = stream.getUInt8();
-    Value value = ctx.allocBlock(length, kDoubleArrayTag);
-    for (size_t i = 0; i < length; ++i) {
-      value.setField(i, ctx.allocDouble(stream.getDouble()));
+    case 0x09: {
+      // String with 8-bit header.
+      size_t length = stream_.getUInt8();
+      value val = ctx_.allocString(stream_.getString(length), length);
+      objects_[index_++] = val;
+      return val;
     }
-    return value;
-  }
-  case 0x07: case 0x0F: {
-    // Sequence of doubles with 32-bit header.
-    size_t length = stream.getUInt32be();
-    Value value = ctx.allocBlock(length, kDoubleArrayTag);
-    for (size_t i = 0; i < length; ++i) {
-      value.setField(i, ctx.allocDouble(stream.getDouble()));
+    case 0x0A: {
+      // String with 32-bit header.
+      size_t length = stream_.getUInt32be();
+      value val = ctx_.allocString(stream_.getString(length), length);
+      objects_[index_++] = val;
+      return val;
     }
-    return value;
-  }
-  case 0x10:
-  case 0x11: {
-    throw std::runtime_error("Not implemented.");
-  }
-  case 0x12: {
-    return ctx.getOperations(stream.getString())->deserialize(ctx, stream);
-  }
-  case 0x13: {
-    // Object with 64-bit header.
-    uint64_t header = stream.getUInt64be();
-    size_t size = header >> 10;
-    uint8_t tag = header & 0xFF;
-    Value value = ctx.allocBlock(size, tag);
-    for (size_t i = 0; i < size; ++i) {
-      value.setField(i, getValueImpl(ctx, stream));
+    case 0x0B: case 0x0C: {
+      value val = ctx_.allocDouble(stream_.getDouble());
+      objects_[index_++] = val;
+      return val;
     }
-    return value;
-  }
-  case 0x20 ... 0x3F: {
-    // Tiny string.
-    size_t length = code & 0x1F;
-    return ctx.allocString(stream.getString(length), length);
-  }
-  case 0x40 ... 0x7F: {
-    // Tiny int.
-    return ctx.allocInt64(code & 0x3F);
-  }
-  case 0x80 ... 0xFF: {
-    // Tiny block.
-    size_t size = (code >> 4) & 0x7;
-    uint8_t tag = code & 0xF;
-    Value value = ctx.allocBlock(size, tag);
-    for (size_t i = 0; i < size; ++i) {
-      value.setField(i, getValueImpl(ctx, stream));
+    case 0x0D: case 0x0E:{
+      // Sequence of doubles with 8-bit header.
+      size_t length = stream_.getUInt8();
+      Value val = ctx_.allocBlock(length, kDoubleArrayTag);
+      for (size_t i = 0; i < length; ++i) {
+        val.setField(i, ctx_.allocDouble(stream_.getDouble()));
+      }
+      objects_[index_++] = val;
+      return val;
     }
-    return value;
+    case 0x07: case 0x0F: {
+      // Sequence of doubles with 32-bit header.
+      size_t length = stream_.getUInt32be();
+      Value val = ctx_.allocBlock(length, kDoubleArrayTag);
+      for (size_t i = 0; i < length; ++i) {
+        val.setField(i, ctx_.allocDouble(stream_.getDouble()));
+      }
+      objects_[index_++] = val;
+      return val;
+    }
+    case 0x10:
+    case 0x11: {
+      throw std::runtime_error("Not implemented.");
+    }
+    case 0x12: {
+      auto name = stream_.getString();
+      if (auto ops = ctx_.getOperations(name)) {
+        return ops->deserialize(ctx_, stream_);
+      } else {
+        throw std::runtime_error("Unimplemented custom '" + name + "'");
+      }
+    }
+    case 0x13: {
+      // Object with 64-bit header.
+      uint64_t header = stream_.getUInt64be();
+      size_t size = header >> 10;
+      uint8_t tag = header & 0xFF;
+      Value val = ctx_.allocBlock(size, tag);
+      for (size_t i = 0; i < size; ++i) {
+        val.setField(i, read());
+      }
+      objects_[index_++] = val;
+      return val;
+    }
+    case 0x20 ... 0x3F: {
+      // Tiny string.
+      size_t length = code & 0x1F;
+      value val = ctx_.allocString(stream_.getString(length), length);
+      objects_[index_++] = val;
+      return val;
+    }
+    case 0x40 ... 0x7F: {
+      // Tiny int.
+      return ctx_.allocInt64(code & 0x3F);
+    }
+    case 0x80 ... 0xFF: {
+      // Tiny block.
+      size_t size = (code >> 4) & 0x7;
+      uint8_t tag = code & 0xF;
+      Value val = ctx_.allocBlock(size, tag);
+      for (size_t i = 0; i < size; ++i) {
+        val.setField(i, read());
+      }
+      objects_[index_++] = val;
+      return val;
+    }
+    default:
+      throw std::runtime_error("Invalid value code: " + std::to_string(code));
+    }
   }
-  default:
-    throw std::runtime_error("Invalid value code: " + std::to_string(code));
-  }
-}
+
+ private:
+  /// ML context.
+  Context &ctx_;
+  /// Stream we are reading from.
+  StreamReader &stream_;
+  /// Object cache.
+  std::vector<value> objects_;
+  /// Current object index.
+  size_t index_;
+};
 
 Value miniml::getValue(Context &ctx, StreamReader &stream) {
   // Reads the header.
@@ -157,10 +196,13 @@ Value miniml::getValue(Context &ctx, StreamReader &stream) {
     }
   }
 
+  // Read/skip the header.
+  uint32_t objCount = stream.getUInt32be();
   stream.getUInt32be();
   stream.getUInt32be();
-  stream.getUInt32be();
-  return getValueImpl(ctx, stream);
+
+  // Read the values.
+  return ValueReader(ctx, stream, objCount).read();
 }
 
 
