@@ -66,19 +66,19 @@ class ValueReader {
     case 0x01: return ctx_.allocInt64(stream_.getInt16be());
     case 0x02: return ctx_.allocInt64(stream_.getInt32be());
     case 0x03: return ctx_.allocInt64(stream_.getInt64be());
-    case 0x04: return objects_[index_ - ctx_.allocInt64(stream_.getUInt8())];
-    case 0x05: return objects_[index_ - ctx_.allocInt64(stream_.getUInt16be())];
-    case 0x06: return objects_[index_ - ctx_.allocInt64(stream_.getUInt32be())];
+    case 0x04: return objects_[index_ - stream_.getUInt8()];
+    case 0x05: return objects_[index_ - stream_.getUInt16be()];
+    case 0x06: return objects_[index_ - stream_.getUInt32be()];
     case 0x08: {
       // Object with 32-bit header.
       uint32_t header = stream_.getUInt32be();
       size_t size = header >> 10;
       uint8_t tag = header & 0xFF;
       Value val = ctx_.allocBlock(size, tag);
+      objects_[index_++] = val;
       for (size_t i = 0; i < size; ++i) {
         val.setField(i, read());
       }
-      objects_[index_++] = val;
       return val;
     }
     case 0x09: {
@@ -104,20 +104,20 @@ class ValueReader {
       // Sequence of doubles with 8-bit header.
       size_t length = stream_.getUInt8();
       Value val = ctx_.allocBlock(length, kDoubleArrayTag);
+      objects_[index_++] = val;
       for (size_t i = 0; i < length; ++i) {
         val.setField(i, ctx_.allocDouble(stream_.getDouble()));
       }
-      objects_[index_++] = val;
       return val;
     }
     case 0x07: case 0x0F: {
       // Sequence of doubles with 32-bit header.
       size_t length = stream_.getUInt32be();
       Value val = ctx_.allocBlock(length, kDoubleArrayTag);
+      objects_[index_++] = val;
       for (size_t i = 0; i < length; ++i) {
         val.setField(i, ctx_.allocDouble(stream_.getDouble()));
       }
-      objects_[index_++] = val;
       return val;
     }
     case 0x10:
@@ -127,7 +127,9 @@ class ValueReader {
     case 0x12: {
       auto name = stream_.getString();
       if (auto ops = ctx_.getOperations(name)) {
-        return ops->deserialize(ctx_, stream_);
+        value val = ops->deserialize(ctx_, stream_);
+        objects_[index_++] = val;
+        return val;
       } else {
         throw std::runtime_error("Unimplemented custom '" + name + "'");
       }
@@ -138,12 +140,13 @@ class ValueReader {
       size_t size = header >> 10;
       uint8_t tag = header & 0xFF;
       Value val = ctx_.allocBlock(size, tag);
+      objects_[index_++] = val;
       for (size_t i = 0; i < size; ++i) {
         val.setField(i, read());
       }
-      objects_[index_++] = val;
       return val;
     }
+    case 0x14: return objects_[index_ - stream_.getUInt64be()];
     case 0x20 ... 0x3F: {
       // Tiny string.
       size_t length = code & 0x1F;
@@ -158,12 +161,11 @@ class ValueReader {
     case 0x80 ... 0xFF: {
       // Tiny block.
       size_t size = (code >> 4) & 0x7;
-      uint8_t tag = code & 0xF;
-      Value val = ctx_.allocBlock(size, tag);
+      Value val = ctx_.allocBlock(size, code & 0xF);
+      objects_[index_++] = val;
       for (size_t i = 0; i < size; ++i) {
         val.setField(i, read());
       }
-      objects_[index_++] = val;
       return val;
     }
     default:

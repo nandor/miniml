@@ -62,7 +62,6 @@ Interpreter::~Interpreter() {
 
 Value Interpreter::run() {
   PC = 0;
-  long l = 0;
   for (;;) {
     switch (auto op = code[PC++]) {
     case   0: runACC(0);                        break;
@@ -214,9 +213,6 @@ Value Interpreter::run() {
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
-    std::cout << ++l << " " << stack.getSP() << " " << extraArgs << " " << (A & 1 ? (int64_t)A : 0);
-    std::cout << " PC:" << code[PC];
-    std::cout << std::endl;
   }
 }
 
@@ -601,7 +597,6 @@ void Interpreter::runSWITCH() {
     assert((uint64_t) index < (n & 0xFFFF)) ;
     PC += static_cast<int32_t>(code[PC + index]);
   }
-  exit(0);
 }
 
 // -----------------------------------------------------------------------------
