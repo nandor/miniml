@@ -38,7 +38,11 @@ extern "C" value caml_array_set_addr(
     value index,
     value newval)
 {
-  val_field(array, val_to_int64(index)) = newval;
+  if (val_tag(array) == kDoubleArrayTag) {
+    assert(false);
+  } else {
+    val_field(array, val_to_int64(index)) = newval;
+  }
   return kUnit;
 }
 
@@ -48,25 +52,36 @@ extern "C" value caml_array_unsafe_set(
     value index,
     value val)
 {
-  val_field(array, val_to_int64(index)) = val;
+  if (val_tag(array) == kDoubleArrayTag) {
+    assert(false);
+  } else {
+    val_field(array, val_to_int64(index)) = val;
+  }
   return kUnit;
 }
 
 extern "C" value caml_array_unsafe_get(
-    Context &,
+    Context &ctx,
     value array,
     value index)
 {
-  return val_field(array, val_to_int64(index));
+  if (val_tag(array) == kDoubleArrayTag) {
+    return ctx.allocDouble(val_field(array, val_to_int64(index)));
+  } else {
+    return val_field(array, val_to_int64(index));
+  }
 }
 
 extern "C" value caml_array_get(
-    Context &,
+    Context &ctx,
     value array,
     value index)
 {
-  // TODO: make it safe.
-  return val_field(array, val_to_int64(index));
+  if (val_tag(array) == kDoubleArrayTag) {
+    return ctx.allocDouble(val_field(array, val_to_int64(index)));
+  } else {
+    return val_field(array, val_to_int64(index));
+  }
 }
 
 extern "C" value caml_array_blit(

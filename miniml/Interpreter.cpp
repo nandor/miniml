@@ -562,8 +562,12 @@ void Interpreter::runMAKEBLOCK(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runMAKEFLOATBLOCK(uint32_t n) {
-  (void) n;
-  throw std::runtime_error("MAKEFLOATBLOCK");
+  Value block = ctx.allocBlock(n, kDoubleArrayTag);
+  block.setField(0, A.getDouble());
+  for (uint32_t i = 1; i < n; ++i) {
+    block.setField(i, stack.pop().getDouble());
+  }
+  A = block;
 }
 
 // -----------------------------------------------------------------------------
@@ -642,7 +646,6 @@ void Interpreter::runCCALL(uint32_t n) {
   if (ptr == nullptr) {
     throw std::runtime_error("Undefined prim " + std::to_string(p));
   }
-  std::cout << p << std::endl;
 
   stack.push(env);
 
