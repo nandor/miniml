@@ -23,6 +23,18 @@ extern "C" value caml_make_vect(
   return ret;
 }
 
+extern "C" value caml_make_float_vect(
+    Context &ctx,
+    value len)
+{
+  size_t size = val_to_int64(len);
+  if (size == 0) {
+    return ctx.allocAtom(0);
+  } else {
+    return ctx.allocBlock(size, kDoubleArrayTag);
+  }
+}
+
 extern "C" value caml_array_get_addr(
     Context &,
     value array,
@@ -53,7 +65,7 @@ extern "C" value caml_array_unsafe_set(
     value val)
 {
   if (val_tag(array) == kDoubleArrayTag) {
-    assert(false);
+    val_field(array, val_to_int64(index)) = val_to_double(val);
   } else {
     val_field(array, val_to_int64(index)) = val;
   }

@@ -1,7 +1,8 @@
 
 
-class obj_base = object(self)
-  method lol = print_endline "lol";
+class obj_base = object
+  method lol = 5
 end;;
 
-(new obj_base)#lol
+
+print_int (new obj_base)#lol

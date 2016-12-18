@@ -51,6 +51,7 @@ Interpreter::Interpreter(
   : ctx(ctx)
   , code(code)
   , A(1ull)
+  , trapSP(0)
   , extraArgs(0)
   , global(global)
   , prim(prim)
@@ -251,9 +252,7 @@ void Interpreter::runGETFIELD(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGETFLOATFIELD(uint32_t n) {
-  std::cerr << "GETFLOATFIELD" << std::endl;
-  (void) n;
-  throw std::runtime_error("GETFLOATFIELD");
+  A = ctx.allocDouble(A.getField(n));
 }
 
 // -----------------------------------------------------------------------------
@@ -280,7 +279,10 @@ void Interpreter::runGETVECTITEM() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runSETVECTITEM() {
-  throw std::runtime_error("SETVECTITEM");
+  int64_t n = val_to_int64(stack.pop());
+  Value v = stack.pop();
+  A.setField(n, v);
+  A = kUnit;
 }
 
 // -----------------------------------------------------------------------------
@@ -848,7 +850,7 @@ void Interpreter::runRETURN(uint32_t n) {
 // -----------------------------------------------------------------------------
 void Interpreter::runRAISE() {
   if (trapSP == 0) {
-    std::runtime_error("No exception handler.");
+    throw std::runtime_error("Unhandled exception.");
   }
   stack.setSP(trapSP);
   PC = val_to_int64(stack.pop());

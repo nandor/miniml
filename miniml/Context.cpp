@@ -19,6 +19,9 @@ using namespace miniml;
 Context::Context()
   : heap_()
 {
+  for (size_t i = 0; i < 256; ++i) {
+    atom_[i] = allocBlock(i, 0);
+  }
 }
 
 Context::~Context() {
@@ -49,7 +52,7 @@ value Context::allocCustom(CustomOperations *op, size_t size) {
 }
 
 value Context::allocAtom(uint8_t id) {
-  return id;
+  return atom_[id];
 }
 
 void Context::registerOperations(CustomOperations *value) {

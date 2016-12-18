@@ -45,6 +45,8 @@ class Context {
   friend class Heap;
   /// Memory Manager.
   Heap heap_;
+  /// List of atoms.
+  value atom_[256];
   /// List of custom values.
   std::unordered_map<std::string, CustomOperations *> custom_;
 };
