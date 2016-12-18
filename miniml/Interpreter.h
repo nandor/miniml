@@ -116,7 +116,7 @@ class Interpreter {
   void runLSRINT();
   void runASRINT();
   void runOFFSETINT(int32_t ofs);
-  void runOFFSETREF();
+  void runOFFSETREF(int32_t ofs);
   void runISINT();
   void runGETMETHOD();
   void runBEQ();

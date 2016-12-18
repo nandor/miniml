@@ -63,8 +63,10 @@ Interpreter::~Interpreter() {
 
 Value Interpreter::run() {
   PC = 0;
+  unsigned count = 0;
   for (;;) {
-    switch (auto op = code[PC++]) {
+    auto op = code[PC++];
+    switch (op) {
     case   0: runACC(0);                        break;
     case   1: runACC(1);                        break;
     case   2: runACC(2);                        break;
@@ -193,7 +195,7 @@ Value Interpreter::run() {
     case 125: runGTINT();                       break;
     case 126: runGEINT();                       break;
     case 127: runOFFSETINT(code[PC++]);         break;
-    case 128: runOFFSETREF();                   break;
+    case 128: runOFFSETREF(code[PC++]);         break;
     case 129: runISINT();                       break;
     case 130: runGETMETHOD();                   break;
     case 131: runBEQ();                         break;
@@ -213,6 +215,14 @@ Value Interpreter::run() {
     case 145: runBREAK();                       break;
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
+    }
+    //std::cerr << std::dec << ++count << " " << stack.getSP() << " " << extraArgs << " " << std::hex << A << " PC: " << std::dec << (int)op << "\n";
+    //for (size_t i = 0; i < stack.getSP(); ++i) {
+    //  std::cerr << std::hex << stack[i] << " ";
+    //}
+    //std::cerr << std::endl;
+    if (count > 2300) {
+      return kUnit;
     }
   }
 }
@@ -760,12 +770,12 @@ void Interpreter::runASRINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runOFFSETINT(int32_t ofs) {
-  A = ctx.allocInt64(A.getInt64() + ofs);
+  A = A + (ofs << 1);
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runOFFSETREF() {
-  val_field(A, 0) += val_to_int64(code[PC++]);
+void Interpreter::runOFFSETREF(int32_t ofs) {
+  val_field(A, 0) += ofs << 1;
   A = kUnit;
 }
 
@@ -935,7 +945,24 @@ void Interpreter::runBUGEINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGETPUBMET() {
-  throw std::runtime_error("GETPUBMET");
+  uint32_t tag = code[PC++];
+  uint32_t cache = code[PC++]; (void) cache;
+
+  stack.push(A);
+
+  Value meths = A.getField(0);
+  int64_t lo = 3, hi = meths.getField(0);
+
+  while (lo < hi) {
+    int64_t mi = ((lo + hi) >> 1) | 1;
+    if (tag < meths.getField(mi)) {
+      hi = mi - 2;
+    } else {
+      lo = mi;
+    }
+  }
+
+  A = meths.getField(lo - 1);
 }
 
 // -----------------------------------------------------------------------------
