@@ -159,7 +159,7 @@ class Interpreter {
   /// Number of extra arguments to a function.
   uint64_t extraArgs;
   /// Environment.
-  value env;
+  Value env;
   /// Global state.
   Value global;
   /// Builtin functions.

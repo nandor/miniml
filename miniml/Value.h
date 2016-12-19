@@ -123,6 +123,18 @@ inline size_t val_strlen(value val) {
   return blkSize - data[blkSize - 1] - 1;
 }
 
+/// Converts a double to a 64-bit integer.
+inline uint64_t dbl_to_val(double val) {
+  union { double val_double; uint64_t val_int; } u;
+  u.val_double = val;
+  return u.val_int;
+}
+/// Converts a 64-bit integer to a double.
+inline double val_to_dbl(uint64_t val) {
+  union { double val_double; uint64_t val_int; } u;
+  u.val_int = val;
+  return u.val_double;
+}
 
 /// Wrapper around a block/integer.
 class Value final {
@@ -172,6 +184,7 @@ class Value final {
   inline bool isBlock() const {
     return !(value_ & 1);
   }
+
   /// Checks if the value is a specific object.
   inline bool isClosure() const { return tag() == kClosureTag; }
   inline bool isObject() const { return tag() == kObjectTag; }
@@ -241,6 +254,11 @@ class Value final {
 
   /// First node in the value chain.
   static Value *chain;
+
+  /// Next node in the chain.
+  inline const Value *next() const {
+    return next_;
+  }
 
  private:
   /// Links the value into the chain.

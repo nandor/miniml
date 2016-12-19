@@ -11,33 +11,32 @@ using namespace miniml;
 // Heap
 // -----------------------------------------------------------------------------
 Heap::Heap()
-  : minorHeapSize(4 << 10 /* 4Kb */)
-  , majorNodeSize(4 << 10 /* 4Kb */)
+  : minorHeapSize(512 << 10 /* 4Kb */)
+  , majorNodeSize(512 << 10 /* 4Kb */)
   , minorStart(nullptr)
   , minorCurrent(nullptr)
   , major(nullptr)
 {
-  (void) minorHeapSize;
-  (void) majorNodeSize;
-  (void) minorStart;
-  (void) minorCurrent;
+  minorStart = minorCurrent = reinterpret_cast<uint8_t*>(malloc(minorHeapSize));
+
   (void) major;
+  (void) majorNodeSize;
 }
 
 Heap::~Heap() {
 }
 
-value Heap::allocInt64(int64_t i) {
+Value Heap::allocInt64(int64_t i) {
   return (static_cast<uint64_t>(i) << 1ull) | 1ull;
 }
 
-value Heap::allocDouble(double v) {
+Value Heap::allocDouble(double v) {
   value b = allocBlock(1, kDoubleTag);
   *reinterpret_cast<double*>(val_ptr(b)) = v;
   return b;
 }
 
-value Heap::allocBytes(size_t length) {
+Value Heap::allocBytes(size_t length) {
   // The length of all blocks must be a multiple of the word size, i.e. 8 bytes.
   // Thus, the memory allocated to strings must be a multiple of the word size.
   // The string is padded by a number of bytes and the last byte represents the
@@ -56,30 +55,45 @@ value Heap::allocBytes(size_t length) {
   return b;
 }
 
-value Heap::allocString(const char *str, size_t length) {
+Value Heap::allocString(const char *str, size_t length) {
   value b = allocBytes(length);
   char *ptr = reinterpret_cast<char *>(val_ptr(b));
   memcpy(ptr, str, length);
   return b;
 }
 
-value Heap::allocBlock(size_t n, uint8_t tag) {
+Value Heap::allocBlock(size_t n, uint8_t tag) {
   if (n >= (1ull << (64ull - 10ull))) {
     throw std::runtime_error("Block too large.");
   }
 
-  void *block = malloc(n * sizeof(value) + sizeof(value));
-  if (block == nullptr) {
-    throw std::runtime_error("Allocation failed.");
+  size_t blkSize = n * sizeof(value) + sizeof(value);
+  if (blkSize > minorHeapSize) {
+    // Major heap allocation.
+    assert(!"alloc on major heap");
+  } else if (minorStart + minorHeapSize < minorCurrent + blkSize) {
+    // Minor heap fill, trigger GC.
+    for (const Value *n = Value::chain; n; n = n->next()) {
+
+    }
+    assert(!"minor gc");
+  } else {
+    void *block = reinterpret_cast<void*>(minorCurrent);
+    minorCurrent += blkSize;
+
+    if (block == nullptr) {
+      throw std::runtime_error("Allocation failed.");
+    }
+
+    *reinterpret_cast<uint64_t *>(block) = (n << 10) | tag;
+    for (size_t i = 0; i < n; ++i) {
+      *(reinterpret_cast<value *>(block) + i + 1) = 1ull;
+    }
+    return reinterpret_cast<value>(block) + sizeof(uint64_t);
   }
-  *reinterpret_cast<uint64_t *>(block) = (n << 10) | tag;
-  for (size_t i = 0; i < n; ++i) {
-    *(reinterpret_cast<value *>(block) + i + 1) = 1ull;
-  }
-  return reinterpret_cast<value>(block) + sizeof(uint64_t);
 }
 
-value Heap::allocCustom(CustomOperations *op, size_t size) {
+Value Heap::allocCustom(CustomOperations *op, size_t size) {
   const size_t words = 1 + (size + sizeof(value) - 1) / sizeof(value);
   value b = allocBlock(words, kCustomTag);
   val_field(b, 0) = reinterpret_cast<value>(op);

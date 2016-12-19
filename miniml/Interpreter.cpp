@@ -63,10 +63,8 @@ Interpreter::~Interpreter() {
 
 Value Interpreter::run() {
   PC = 0;
-  unsigned count = 0;
   for (;;) {
-    auto op = code[PC++];
-    switch (op) {
+    switch (auto op = code[PC++]) {
     case   0: runACC(0);                        break;
     case   1: runACC(1);                        break;
     case   2: runACC(2);                        break;
@@ -216,14 +214,6 @@ Value Interpreter::run() {
     default:
       throw std::runtime_error("Uknonwn opcode: " + std::to_string(op));
     }
-    //std::cerr << std::dec << ++count << " " << stack.getSP() << " " << extraArgs << " " << std::hex << A << " PC: " << std::dec << (int)op << "\n";
-    //for (size_t i = 0; i < stack.getSP(); ++i) {
-    //  std::cerr << std::hex << stack[i] << " ";
-    //}
-    //std::cerr << std::endl;
-    if (count > 2300) {
-      return kUnit;
-    }
   }
 }
 
@@ -262,7 +252,9 @@ void Interpreter::runGETFIELD(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGETFLOATFIELD(uint32_t n) {
-  A = ctx.allocDouble(A.getField(n));
+  value val = ctx.allocBlock(1, kDoubleTag);
+  val_field(val, 0) = val_field(A, n);
+  A = val;
 }
 
 // -----------------------------------------------------------------------------
@@ -273,8 +265,8 @@ void Interpreter::runSETFIELD(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runSETFLOATFIELD(uint32_t n) {
-  (void) n;
-  throw std::runtime_error("SETFLOATFIELD");
+  val_field(A, n) = dbl_to_val(val_to_double(stack.pop()));
+  A = kUnit;
 }
 
 // -----------------------------------------------------------------------------
@@ -284,7 +276,7 @@ void Interpreter::runVECTLENGTH() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGETVECTITEM() {
-  throw std::runtime_error("GETVECTITEM");
+  A = val_field(A, val_to_int64(stack.pop()));
 }
 
 // -----------------------------------------------------------------------------
@@ -575,9 +567,9 @@ void Interpreter::runMAKEBLOCK(uint32_t n) {
 // -----------------------------------------------------------------------------
 void Interpreter::runMAKEFLOATBLOCK(uint32_t n) {
   Value block = ctx.allocBlock(n, kDoubleArrayTag);
-  block.setField(0, A.getDouble());
+  block.setField(0, val_field(A, 0));
   for (uint32_t i = 1; i < n; ++i) {
-    block.setField(i, stack.pop().getDouble());
+    block.setField(i, val_field(stack.pop(), 0));
   }
   A = block;
 }
@@ -967,7 +959,19 @@ void Interpreter::runGETPUBMET() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGETDYNMET() {
-  throw std::runtime_error("GETDYNMET");
+  Value meths = stack[0].getField(0);
+  int64_t lo = 3, hi = meths.getField(0);
+
+  while (lo < hi) {
+    int64_t mi = ((lo + hi) >> 1) | 1;
+    if (A < meths.getField(mi)) {
+      hi = mi - 2;
+    } else {
+      lo = mi;
+    }
+  }
+
+  A = meths.getField(lo - 1);
 }
 
 // -----------------------------------------------------------------------------

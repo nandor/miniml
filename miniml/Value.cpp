@@ -84,19 +84,19 @@ class ValueReader {
     case 0x09: {
       // String with 8-bit header.
       size_t length = stream_.getUInt8();
-      value val = ctx_.allocString(stream_.getString(length), length);
+      Value val = ctx_.allocString(stream_.getString(length), length);
       objects_[index_++] = val;
       return val;
     }
     case 0x0A: {
       // String with 32-bit header.
       size_t length = stream_.getUInt32be();
-      value val = ctx_.allocString(stream_.getString(length), length);
+      Value val = ctx_.allocString(stream_.getString(length), length);
       objects_[index_++] = val;
       return val;
     }
     case 0x0B: case 0x0C: {
-      value val = ctx_.allocDouble(stream_.getDouble());
+      Value val = ctx_.allocDouble(stream_.getDouble());
       objects_[index_++] = val;
       return val;
     }
@@ -106,7 +106,7 @@ class ValueReader {
       Value val = ctx_.allocBlock(length, kDoubleArrayTag);
       objects_[index_++] = val;
       for (size_t i = 0; i < length; ++i) {
-        val.setField(i, ctx_.allocDouble(stream_.getDouble()));
+        val.setField(i, dbl_to_val(stream_.getDouble()));
       }
       return val;
     }
@@ -116,7 +116,7 @@ class ValueReader {
       Value val = ctx_.allocBlock(length, kDoubleArrayTag);
       objects_[index_++] = val;
       for (size_t i = 0; i < length; ++i) {
-        val.setField(i, ctx_.allocDouble(stream_.getDouble()));
+        val.setField(i, dbl_to_val(stream_.getDouble()));
       }
       return val;
     }
@@ -127,7 +127,7 @@ class ValueReader {
     case 0x12: {
       auto name = stream_.getString();
       if (auto ops = ctx_.getOperations(name)) {
-        value val = ops->deserialize(ctx_, stream_);
+        Value val = ops->deserialize(ctx_, stream_);
         objects_[index_++] = val;
         return val;
       } else {
@@ -150,7 +150,7 @@ class ValueReader {
     case 0x20 ... 0x3F: {
       // Tiny string.
       size_t length = code & 0x1F;
-      value val = ctx_.allocString(stream_.getString(length), length);
+      Value val = ctx_.allocString(stream_.getString(length), length);
       objects_[index_++] = val;
       return val;
     }
@@ -179,7 +179,7 @@ class ValueReader {
   /// Stream we are reading from.
   StreamReader &stream_;
   /// Object cache.
-  std::vector<value> objects_;
+  std::vector<Value> objects_;
   /// Current object index.
   size_t index_;
 };

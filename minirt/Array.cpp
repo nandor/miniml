@@ -15,12 +15,34 @@ extern "C" value caml_make_vect(
     value len,
     value init)
 {
-  size_t size = val_to_int64(len);
-  value ret = ctx.allocBlock(size, 0);
-  for (size_t i = 0; i < size; ++i) {
-    val_field(ret, i) = init;
+  if (val_tag(init) == kDoubleTag) {
+    assert(!"caml_make_vect");
+  } else {
+    size_t size = val_to_int64(len);
+    value ret = ctx.allocBlock(size, 0);
+    for (size_t i = 0; i < size; ++i) {
+      val_field(ret, i) = init;
+    }
+    return ret;
   }
-  return ret;
+}
+
+extern "C" value caml_array_get_float(
+    Context &ctx,
+    value array,
+    value index)
+{
+  return ctx.allocDouble(val_to_dbl(val_field(array, val_to_int64(index))));
+}
+
+extern "C" value caml_array_set_float(
+    Context &,
+    value array,
+    value index,
+    value val)
+{
+  val_field(array, val_to_int64(index)) = dbl_to_val(val_to_double(val));
+  return kUnit;
 }
 
 extern "C" value caml_make_float_vect(
@@ -50,11 +72,7 @@ extern "C" value caml_array_set_addr(
     value index,
     value newval)
 {
-  if (val_tag(array) == kDoubleArrayTag) {
-    assert(false);
-  } else {
-    val_field(array, val_to_int64(index)) = newval;
-  }
+  val_field(array, val_to_int64(index)) = newval;
   return kUnit;
 }
 
@@ -65,7 +83,7 @@ extern "C" value caml_array_unsafe_set(
     value val)
 {
   if (val_tag(array) == kDoubleArrayTag) {
-    val_field(array, val_to_int64(index)) = val_to_double(val);
+    assert(false);
   } else {
     val_field(array, val_to_int64(index)) = val;
   }
@@ -78,7 +96,7 @@ extern "C" value caml_array_unsafe_get(
     value index)
 {
   if (val_tag(array) == kDoubleArrayTag) {
-    return ctx.allocDouble(val_field(array, val_to_int64(index)));
+    return ctx.allocDouble(val_to_dbl(val_field(array, val_to_int64(index))));
   } else {
     return val_field(array, val_to_int64(index));
   }
@@ -90,7 +108,7 @@ extern "C" value caml_array_get(
     value index)
 {
   if (val_tag(array) == kDoubleArrayTag) {
-    return ctx.allocDouble(val_field(array, val_to_int64(index)));
+    return ctx.allocDouble(val_to_dbl(val_field(array, val_to_int64(index))));
   } else {
     return val_field(array, val_to_int64(index));
   }
@@ -105,13 +123,13 @@ extern "C" value caml_array_blit(
     value n)
 {
   if (val_tag(a2) == kDoubleArrayTag) {
-    throw std::runtime_error("caml_array_blit");
+    assert(!"caml_array_blit");
+  } else {
+    value *src = &val_field(a1, val_to_int64(ofs1));
+    value *dst = &val_field(a2, val_to_int64(ofs2));
+    for (int64_t i = 0; i < val_to_int64(n); ++i) {
+      dst[i] = src[i];
+    }
+    return kUnit;
   }
-
-  value *src = &val_field(a1, val_to_int64(ofs1));
-  value *dst = &val_field(a2, val_to_int64(ofs2));
-  for (int64_t i = 0; i < val_to_int64(n); ++i) {
-    dst[i] = src[i];
-  }
-  return kUnit;
 }

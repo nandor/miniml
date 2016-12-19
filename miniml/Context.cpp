@@ -20,38 +20,38 @@ Context::Context()
   : heap_()
 {
   for (size_t i = 0; i < 256; ++i) {
-    atom_[i] = allocBlock(i, 0);
+    atom_[i] = allocBlock(0, i);
   }
 }
 
 Context::~Context() {
 }
 
-value Context::allocInt64(int64_t i) {
+Value Context::allocInt64(int64_t i) {
   return heap_.allocInt64(i);
 }
 
-value Context::allocDouble(double v) {
+Value Context::allocDouble(double v) {
   return heap_.allocDouble(v);
 }
 
-value Context::allocBytes(size_t length) {
+Value Context::allocBytes(size_t length) {
   return heap_.allocBytes(length);
 }
 
-value Context::allocString(const char *str, size_t length) {
+Value Context::allocString(const char *str, size_t length) {
   return heap_.allocString(str, length);
 }
 
-value Context::allocBlock(size_t n, uint8_t tag) {
+Value Context::allocBlock(size_t n, uint8_t tag) {
   return heap_.allocBlock(n, tag);
 }
 
-value Context::allocCustom(CustomOperations *op, size_t size) {
+Value Context::allocCustom(CustomOperations *op, size_t size) {
   return heap_.allocCustom(op, size);
 }
 
-value Context::allocAtom(uint8_t id) {
+Value Context::allocAtom(uint8_t id) {
   return atom_[id];
 }
 

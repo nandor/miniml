@@ -25,13 +25,13 @@ class Context {
   virtual ~Context();
 
   // Allocates values on the heap.
-  value allocInt64(int64_t i);
-  value allocDouble(double v);
-  value allocBytes(size_t length);
-  value allocString(const char *str, size_t length);
-  value allocBlock(size_t n, uint8_t tag);
-  value allocCustom(CustomOperations *op, size_t size);
-  value allocAtom(uint8_t id);
+  Value allocInt64(int64_t i);
+  Value allocDouble(double v);
+  Value allocBytes(size_t length);
+  Value allocString(const char *str, size_t length);
+  Value allocBlock(size_t n, uint8_t tag);
+  Value allocCustom(CustomOperations *op, size_t size);
+  Value allocAtom(uint8_t id);
 
   // Custom value operations.
   void registerOperations(CustomOperations *value);
@@ -46,7 +46,7 @@ class Context {
   /// Memory Manager.
   Heap heap_;
   /// List of atoms.
-  value atom_[256];
+  Value atom_[256];
   /// List of custom values.
   std::unordered_map<std::string, CustomOperations *> custom_;
 };
