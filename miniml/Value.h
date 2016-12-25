@@ -16,6 +16,19 @@ namespace miniml {
 class Context;
 class Heap;
 
+/// Well-known exceptions.
+static const uint8_t kOutOfMemoryExn              = 0;
+static const uint8_t kSysErrorExn                 = 1;
+static const uint8_t kFailureExn                  = 2;
+static const uint8_t kInvalidExn                  = 3;
+static const uint8_t kEndOfFileExn                = 4;
+static const uint8_t kZeroDivideExn               = 5;
+static const uint8_t kNotFoundExn                 = 6;
+static const uint8_t kMatchFailureExn             = 7;
+static const uint8_t kStackOverflowExn            = 8;
+static const uint8_t kSysBlockedIO                = 9;
+static const uint8_t kAssertFailureExn            = 10;
+static const uint8_t kUndefinedRecursiveModuleExn = 11;
 
 
 /// Well-known tags.
@@ -27,7 +40,6 @@ static const uint8_t kStringTag      = 252;
 static const uint8_t kDoubleTag      = 253;
 static const uint8_t kDoubleArrayTag = 254;
 static const uint8_t kCustomTag      = 255;
-
 
 
 /// All values are encoded in 64 bits.
