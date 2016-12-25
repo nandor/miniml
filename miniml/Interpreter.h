@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include <setjmp.h>
+
 
 
 namespace miniml {
@@ -164,6 +166,8 @@ class Interpreter {
   Value global;
   /// Builtin functions.
   std::vector<void *> prim;
+  /// Exception buffer.
+  sigjmp_buf exn;
 };
 
 } // namespace miniml

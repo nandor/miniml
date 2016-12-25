@@ -38,7 +38,7 @@ class Context {
   CustomOperations *getOperations(const std::string &name);
 
   // Executes a bytecode file.
-  void run(BytecodeFile &file);
+  Value run(BytecodeFile &file);
 
  private:
   /// Interpreter is a friend.

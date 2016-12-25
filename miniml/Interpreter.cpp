@@ -63,6 +63,19 @@ Interpreter::~Interpreter() {
 
 Value Interpreter::run() {
   PC = 0;
+
+  if (sigsetjmp(exn, 0)) {
+    if (trapSP == 0) {
+      return A;
+    }
+
+    stack.setSP(trapSP);
+    PC = val_to_int64(stack.pop());
+    trapSP = val_to_int64(stack.pop());
+    env = stack.pop();
+    extraArgs = val_to_int64(stack.pop());
+  }
+
   for (;;) {
     switch (auto op = code[PC++]) {
     case   0: runACC(0);                        break;
@@ -682,7 +695,11 @@ void Interpreter::runCCALL(uint32_t n) {
     break;
   }
   default:
-    throw std::runtime_error("CCall not implemented");
+    stack.push(A);
+    auto *fn = ((value(*)(Context&, Value*, uint32_t n))ptr);
+    A = fn(ctx, &stack[0], n);
+    stack.pop();
+    break;
   }
 
   env = stack.pop();
@@ -716,7 +733,8 @@ void Interpreter::runSUBINT() {
 void Interpreter::runDIVINT() {
   int64_t i = val_to_int64(stack.pop());
   if (i == 0) {
-    throw std::runtime_error("Division by zero.");
+    A = val_field(global, kZeroDivideExn);
+    siglongjmp(exn, 1);
   } else {
     A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) / i);
   }
@@ -726,7 +744,8 @@ void Interpreter::runDIVINT() {
 void Interpreter::runMODINT() {
   int64_t i = val_to_int64(stack.pop());
   if (i == 0) {
-    throw std::runtime_error("Division by zero.");
+    A = val_field(global, kZeroDivideExn);
+    siglongjmp(exn, 1);
   } else {
     A = ctx.allocInt64(static_cast<uint64_t>(A.getInt64()) % i);
   }
@@ -873,14 +892,7 @@ void Interpreter::runRETURN(uint32_t n) {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runRAISE() {
-  if (trapSP == 0) {
-    throw std::runtime_error("Unhandled exception.");
-  }
-  stack.setSP(trapSP);
-  PC = val_to_int64(stack.pop());
-  trapSP = val_to_int64(stack.pop());
-  env = stack.pop();
-  extraArgs = val_to_int64(stack.pop());
+  siglongjmp(exn, 1);
 }
 
 // -----------------------------------------------------------------------------

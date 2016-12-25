@@ -67,7 +67,7 @@ CustomOperations *Context::getOperations(const std::string &name) {
   return it->second;
 }
 
-void Context::run(BytecodeFile &file) {
+Value Context::run(BytecodeFile &file) {
   // Decode the global data.
   auto dataSection = file.getSection(DATA);
   MemoryStreamReader codeStream(dataSection->getData(), dataSection->getSize());
@@ -105,5 +105,5 @@ void Context::run(BytecodeFile &file) {
   link(nullptr);
 
   // Run the interpreter.
-  Interpreter(*this, code, global, prim).run();
+  return Interpreter(*this, code, global, prim).run();
 }

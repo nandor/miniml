@@ -30,7 +30,10 @@ int main(int argc, char **argv) {
 
     for (int i = 1; i < argc; ++i) {
       BytecodeFile file(argv[i]);
-      ctx.run(file);
+      auto result = ctx.run(file);
+      if (result != kUnit) {
+        printValue(ctx, result, std::cerr);
+      }
     }
     return EXIT_SUCCESS;
   } catch (std::exception &e) {
