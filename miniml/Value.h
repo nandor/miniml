@@ -237,6 +237,9 @@ class Value final {
   inline int64_t getInt64() const {
     return val_to_int64(value_);
   }
+  inline uint64_t getUInt64() const {
+    return static_cast<uint64_t>(val_to_int64(value_));
+  }
   inline double getDouble() const {
     return val_to_double(value_);
   }

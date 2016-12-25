@@ -289,12 +289,14 @@ void Interpreter::runSETVECTITEM() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGETSTRINGCHAR() {
-  throw std::runtime_error("GETSTRINGCHAR");
+  A = ctx.allocInt64(val_to_string(A)[val_to_int64(stack.pop())]);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runSETSTRINGCHAR() {
-  throw std::runtime_error("SETSTRINGCHAR");
+  int64_t n = val_to_int64(stack.pop());
+  int64_t v = val_to_int64(stack.pop());
+  val_to_string(A)[n] = v;
 }
 
 
@@ -490,24 +492,24 @@ void Interpreter::runCLOSUREREC() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runOFFSETCLOSUREM2() {
-  throw std::runtime_error("OFFSETCLOSUREM2");
+  A = env - 2 * sizeof(value);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runOFFSETCLOSURE(uint32_t n) {
-  (void) n;
-  throw std::runtime_error("OFFSETCLOSURE");
+  A = env + n * sizeof(value);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runPUSHOFFSETCLOSUREM2() {
-  throw std::runtime_error("PUSHOFFSETCLOSUREM2");
+  stack.push(A);
+  A = env - 2 * sizeof(value);
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runPUSHOFFSETCLOSURE(uint32_t n) {
   stack.push(A);
-  A = env - n * sizeof(value);
+  A = env + n * sizeof(value);
 }
 
 // -----------------------------------------------------------------------------
@@ -609,7 +611,7 @@ void Interpreter::runSWITCH() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBOOLNOT() {
-  throw std::runtime_error("BOOLNOT");
+  A = ctx.allocInt64(!A.getInt64());
 }
 
 // -----------------------------------------------------------------------------
@@ -695,7 +697,7 @@ void Interpreter::runMULINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runNEGINT() {
-  throw std::runtime_error("NEGINT");
+  A = ctx.allocInt64(-A.getInt64());
 }
 
 // -----------------------------------------------------------------------------
@@ -778,7 +780,9 @@ void Interpreter::runISINT() {
 
 // -----------------------------------------------------------------------------
 void Interpreter::runGETMETHOD() {
-  throw std::runtime_error("GETMETHOD");
+  value x = stack.pop();
+  value y = val_field(x, 0);
+  A = val_field(y, val_to_int64(A));
 }
 
 // -----------------------------------------------------------------------------
@@ -829,6 +833,24 @@ void Interpreter::runGTINT() {
 // -----------------------------------------------------------------------------
 void Interpreter::runGEINT() {
   if (A >= stack.pop()) {
+    A = kTrue;
+  } else {
+    A = kFalse;
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runULTINT() {
+  if (static_cast<uint64_t>(A) < static_cast<uint64_t>(stack.pop())) {
+    A = kTrue;
+  } else {
+    A = kFalse;
+  }
+}
+
+// -----------------------------------------------------------------------------
+void Interpreter::runUGEINT() {
+  if (static_cast<uint64_t>(A) > static_cast<uint64_t>(stack.pop())) {
     A = kTrue;
   } else {
     A = kFalse;
@@ -916,23 +938,21 @@ void Interpreter::runBGEINT() {
 }
 
 // -----------------------------------------------------------------------------
-void Interpreter::runULTINT() {
-  throw std::runtime_error("ULTINT");
-}
-
-// -----------------------------------------------------------------------------
-void Interpreter::runUGEINT() {
-  throw std::runtime_error("UGEINT");
-}
-
-// -----------------------------------------------------------------------------
 void Interpreter::runBULTINT() {
-  throw std::runtime_error("BULTINT");
+  if (static_cast<uint64_t>(code[PC++]) < A.getUInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
 void Interpreter::runBUGEINT() {
-  throw std::runtime_error("BUGEINT");
+  if (static_cast<uint64_t>(code[PC++]) >= A.getUInt64()) {
+    PC += static_cast<int32_t>(code[PC]);
+  } else {
+    PC += 1;
+  }
 }
 
 // -----------------------------------------------------------------------------
