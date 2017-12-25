@@ -8,20 +8,6 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 ADD_DEFINITIONS(-Wall -Werror -Wextra)
 ADD_DEFINITIONS(-std=gnu++1y -g)
 
-# Compile the interpreter
-SET(INTERP ${CMAKE_CURRENT_BINARY_DIR}/Interpreter.s)
-ADD_CUSTOM_COMMAND(
-    OUTPUT
-      ${INTERP}
-    COMMAND
-      runhaskell Interpreter.hs x86 ${INTERP}
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}/miniml/Interp
-    DEPENDS
-      miniml/Interp/Codegen.hs
-      miniml/Interp/Interpreter.hs
-)
-
 # miniml
 ADD_LIBRARY(miniml STATIC
   ${INTERP}
